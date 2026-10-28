@@ -119,7 +119,7 @@ body.is-admin .user-only{display:none!important}
 }
 
 /* Onglets segmentés */
-.tabs-bar{position:sticky;top:12px;z-index:10;margin-bottom:28px}
+.tabs-bar{position:sticky;top:12px;z-index:10;margin-bottom:20px}
 .tabs{display:inline-flex;background:var(--surface-2);border-radius:12px;padding:4px;gap:4px;max-width:100%}
 .tab{
   border:0;background:transparent;cursor:pointer;font-size:15px;font-weight:600;color:var(--muted);
@@ -133,7 +133,7 @@ body.is-admin .user-only{display:none!important}
 .banner{
   display:grid;grid-template-columns:repeat(4,1fr);
   background:linear-gradient(135deg,var(--accent-soft),transparent 140%);
-  border-left:3px solid var(--accent);border-radius:4px 14px 14px 4px;padding:18px 0;margin-bottom:40px;
+  border-left:3px solid var(--accent);border-radius:4px 14px 14px 4px;padding:18px 0;margin-bottom:24px;
 }
 .banner-item{padding:2px 22px;border-left:1px solid var(--line);min-width:0}
 .banner-item:first-child{border-left:0}
@@ -411,7 +411,35 @@ td input[type=date]{padding:4px 8px}
 .year-table tfoot td{font-weight:600;border-top:1px solid var(--line);border-bottom:0;background:var(--surface-2)}
 .year-table tfoot td:first-child{background:var(--surface-2)}
 
-.view-switch{display:flex;justify-content:center;margin-bottom:28px}
+.view-switch{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin:-6px 0 8px}
+.vs-right{justify-self:end}
+.vs-right .btn{font-size:13px;padding:6px 12px}
+@media (max-width:640px){.view-switch{grid-template-columns:1fr}.view-switch>span:first-child{display:none}.vs-right{justify-self:center}}
+.taken-panel{margin-bottom:20px}
+.taken-panel[hidden]{display:none}
+.taken-map{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:12px 0}
+.taken-map label{display:grid;gap:4px;font-size:12px;font-weight:600;color:var(--muted)}
+.taken-map select{font-size:13px;padding:5px 8px}
+#takenTable{font-size:12.5px}
+#takenTable th,#takenTable td{padding:6px 8px}
+#takenTable tr.r-skip td:not(:first-child){opacity:.45}
+#takenTable tr.r-skip td{background:var(--danger-soft)}
+#takenPreview[hidden]{display:none}
+.muted-text{color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;color:var(--muted);margin:-6px 0 12px}
+.lg{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.lg.aff{background:var(--accent)}
+.lg.self{background:var(--gold)}
+.fill.split,.hl .fill.split{display:flex;background:transparent}
+.seg{display:block;height:100%}
+.seg.aff{background:var(--accent)}
+.seg.self{background:var(--gold)}
+.ranking-split .rank-row{grid-template-columns:24px 36px minmax(110px,190px) 1fr 64px}
+.ranking-split .rank-score small{display:block;font-size:11px;font-weight:400;color:var(--muted)}
+.n-aff{font-weight:600}
+.n-sep{color:var(--muted);margin:0 4px}
+.n-self{color:var(--gold);font-weight:600}
+@media (max-width:600px){.ranking-split .rank-row{grid-template-columns:24px 36px 1fr 56px}}
 .view-switch .tab{padding:7px 28px}
 .view-switch .tab[aria-pressed="true"]{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
 .period .btn{padding:4px 12px}
@@ -636,21 +664,46 @@ td input[type=date]{padding:4px 8px}
   <!-- Onglet Statistiques -->
   <div id="panel-stats" role="tabpanel" aria-labelledby="tab-stats" hidden>
     <div class="view-switch no-print">
+      <span></span>
       <div class="tabs" role="group" aria-label="Période des statistiques">
         <button class="tab" type="button" data-view="month" aria-pressed="true">Mois</button>
         <button class="tab" type="button" data-view="year" aria-pressed="false">Année</button>
       </div>
+      <span class="vs-right"><button class="btn" id="takenToggle" type="button" aria-expanded="false" aria-controls="takenPanel">Importer des tickets pris</button></span>
+    </div>
+    <div class="card taken-panel no-print" id="takenPanel" hidden>
+      <div class="section-head" style="margin-bottom:8px">
+        <h2 style="font-size:16px">Tickets pris par les consultants <span class="tag" id="takenTag"></span></h2>
+      </div>
+      <p class="msg err-text" id="takenMissing" hidden>La base doit être mise à jour avant d'utiliser cette fonction : exécutez le script <strong>supabase/002_tickets_pris.sql</strong> dans Supabase (SQL Editor), puis rechargez la page.</p>
+      <p class="help" style="margin:0 0 10px">Collez depuis Excel la liste des tickets que les consultants ont pris eux-mêmes, <strong>avec la ligne d'en-têtes</strong>. Il faut au minimum le n° de ticket, le consultant et la date. Un ticket déjà affecté par l'équipe n'est pas compté deux fois.</p>
+      <textarea id="takenPaste" placeholder="Copiez les tickets dans Excel avec la ligne d'en-têtes, puis collez ici…"></textarea>
+      <div id="takenPreview" hidden>
+        <div class="taken-map" id="takenMap"></div>
+        <ul class="issues" id="takenIssues"></ul>
+        <div class="table-wrap" style="margin-top:0"><table id="takenTable"></table></div>
+        <p class="help" id="takenMore"></p>
+        <div class="row" style="justify-content:flex-end;margin-top:12px">
+          <button class="btn" id="takenCancel" type="button">Annuler</button>
+          <button class="btn primary" id="takenImport" type="button" disabled>Importer</button>
+        </div>
+      </div>
+      <p class="msg" id="takenMsg"></p>
     </div>
     <section id="statsMonth">
       <div class="section-head">
         <h2>Le mois <span class="tag" id="monthTag"></span></h2>
         <label class="period">Période <input type="month" id="monthPicker"></label>
       </div>
-      <p class="kicker">Le détail</p>
       <div class="grid">
         <div class="card" id="monthRankCard">
           <h3>Classement du mois</h3>
           <ol class="ranking" id="monthRanking"></ol>
+        </div>
+        <div class="card" id="monthTotalCard">
+          <h3>Affectations + tickets pris</h3>
+          <p class="legend"><span><i class="lg aff"></i>Affectations</span><span><i class="lg self"></i>Pris par le consultant</span></p>
+          <ol class="ranking ranking-split" id="monthRanking2"></ol>
         </div>
       </div>
     </section>
@@ -663,14 +716,9 @@ td input[type=date]{padding:4px 8px}
           <button class="btn" type="button" id="yearNext" aria-label="Année suivante">›</button>
         </div>
       </div>
-      <div class="grid" style="margin-bottom:16px">
-        <div class="card">
-          <h3>Classement de l'année</h3>
-          <ol class="ranking" id="yearRanking"></ol>
-        </div>
-      </div>
       <div class="card">
         <h3>Affectations par personne et par mois</h3>
+        <p class="legend"><span><span class="n-aff">8</span> affectations</span><span><span class="n-self">3</span> tickets pris par le consultant</span></p>
         <div class="table-wrap" style="margin-top:0">
           <table class="year-table" id="yearTable"></table>
         </div>
@@ -711,7 +759,7 @@ td input[type=date]{padding:4px 8px}
   /* ---------- Données ---------- */
   var LEGACY_KEY = 'affectation-tickets-v1'; // ancienne version, données gardées dans le navigateur
   var UNDO_KEY = 'affectation-undo-v2';
-  function defaults(){ return { columns: [], required: [], tickets: [], archive: [], sessions: [], people: [], dateCol: -1 }; }
+  function defaults(){ return { columns: [], required: [], tickets: [], archive: [], sessions: [], people: [], taken: [], dateCol: -1 }; }
   // Session en cours + tickets archivés : base des statistiques
   function allTickets(){ return state.tickets.concat(state.archive); }
   // Garantit la cohérence du modèle : une case « obligatoire » par colonne, l'identifiant toujours obligatoire
@@ -720,6 +768,7 @@ td input[type=date]{padding:4px 8px}
     if (!Array.isArray(s.required)) s.required = [];
     if (!Array.isArray(s.archive)) s.archive = [];
     if (!Array.isArray(s.sessions)) s.sessions = [];
+    if (!Array.isArray(s.taken)) s.taken = [];
     s.required = s.columns.map(function(_, i){ return i === 0 || !!s.required[i]; });
     if (s.dateCol >= s.columns.length) s.dateCol = -1;
     s.tickets.concat(s.archive).forEach(function(t){
@@ -1075,6 +1124,10 @@ td input[type=date]{padding:4px 8px}
       if (inv.sessions[id]) state.sessions.push({ id: id, at: inv.sessions[id].at });
     });
     state.sessions.sort(function(a, b){ return new Date(a.at) - new Date(b.at); });
+    Object.keys(inv.taken || {}).forEach(function(id){
+      state.taken = state.taken.filter(function(t){ return t.id !== id; });
+      if (inv.taken[id]) state.taken.push(takenFromRow(inv.taken[id]));
+    });
     Object.keys(inv.tickets || {}).forEach(function(id){
       if (inv.tickets[id]) putTicket(ticketFromRow(inv.tickets[id])); else dropTicket(id);
     });
@@ -1163,6 +1216,16 @@ td input[type=date]{padding:4px 8px}
       var d = statDate(t);
       if (!d || d.getFullYear() !== year) return;
       res[t.assignee][d.getMonth()]++;
+    });
+    return res;
+  }
+  // Tableau [personne][mois] des tickets pris par les consultants
+  function takenMatrix(year){
+    var res = {};
+    state.taken.forEach(function(t){
+      var d = parseDate(t.takenOn);
+      if (!d || d.getFullYear() !== year) return;
+      (res[t.person] = res[t.person] || [0,0,0,0,0,0,0,0,0,0,0,0])[d.getMonth()]++;
     });
     return res;
   }
@@ -1494,7 +1557,11 @@ td input[type=date]{padding:4px 8px}
     $('importPanel').hidden = !open;
     $('toggleImport').setAttribute('aria-expanded', open ? 'true' : 'false');
     $('toggleImport').textContent = open ? 'Fermer l\'import' : 'Importer depuis Excel';
-    if (open) $('pasteArea').focus();
+    if (!open) return;
+    // Un nouvel import commence : l'annulation de l'import précédent n'est plus proposée
+    var u = loadUndo();
+    if (u && u.kind === 'import'){ clearUndo(); renderUndo(); }
+    $('pasteArea').focus();
   }
   $('toggleImport').addEventListener('click', function(){ setImportOpen($('importPanel').hidden); });
 
@@ -1925,6 +1992,32 @@ td input[type=date]{padding:4px 8px}
         '<span class="rank-score">' + nf.format(e[1]) + '</span></li>';
     }).join('');
   }
+  // Classement à deux couleurs : affectations + tickets pris ; rows = [nom, affectations, pris]
+  function rankingSplitHTML(rows){
+    if (!rows.length) return '<li class="empty">Aucune donnée pour cette période.</li>';
+    var max = rows[0][1] + rows[0][2] || 1, rank = 0, prev = null;
+    return rows.map(function(e, i){
+      var tot = e[1] + e[2];
+      if (tot !== prev){ rank = i + 1; prev = tot; }
+      var hl = rank === 1 && tot > 0;
+      var pill = tot > 0 && rank <= 2 ? '<span class="rank-pill' + (rank === 2 ? ' second' : '') + '">' + ordinal(rank) + '</span>' : '';
+      var pa = tot ? Math.round(e[1] / tot * 100) : 0;
+      return '<li class="rank-row' + (hl ? ' hl' : '') + '">' +
+        '<span class="rank-n">' + rank + '</span>' +
+        '<span class="avatar" aria-hidden="true">' + esc(initials(e[0])) + '</span>' +
+        '<span class="rank-name" title="' + esc(e[0]) + '">' + esc(e[0]) + pill + '</span>' +
+        '<span class="track" title="' + plural(e[1], 'affectation', 'affectations') + ' + ' + plural(e[2], 'ticket pris', 'tickets pris') + '">' +
+          '<span class="fill split" data-v="' + tot + '" data-max="' + max + '"><span class="seg aff" style="width:' + pa + '%"></span><span class="seg self" style="width:' + (100 - pa) + '%"></span></span></span>' +
+        '<span class="rank-score">' + nf.format(tot) + '<small>' + e[1] + ' + ' + e[2] + '</small></span></li>';
+    }).join('');
+  }
+  // Cellule du tableau annuel : affectations · tickets pris
+  function pairCell(a, t, cls){
+    var c = [cls || '', a || t ? '' : 'zero'].join(' ').trim();
+    return '<td' + (c ? ' class="' + c + '"' : '') + '>' + (a || t
+      ? '<span class="n-aff">' + (a ? nf.format(a) : '0') + '</span><span class="n-sep">·</span><span class="n-self">' + (t ? nf.format(t) : '0') + '</span>'
+      : '–') + '</td>';
+  }
   function summaryCard(title, total, sorted, label){
     var withData = sorted.filter(function(e){ return e[1] > 0; });
     var people = sorted.length || 1;
@@ -1950,34 +2043,186 @@ td input[type=date]{padding:4px 8px}
       year[p] = mx[p].reduce(function(a, b){ return a + b; }, 0);
       monthTotal += month[p]; yearTotal += year[p];
     });
-    var ms = sortCounts(month), ys = sortCounts(year);
+    var ms = sortCounts(month);
     $('monthTag').textContent = MONTHS[period.m] + ' ' + period.y;
     $('yearTag').textContent = String(period.y);
     $('monthRanking').innerHTML = rankingHTML(ms);
-    $('yearRanking').innerHTML = rankingHTML(ys);
 
-    // Tableau annuel personne × mois
-    var colTotals = [0,0,0,0,0,0,0,0,0,0,0,0];
-    var topTotal = ys.length ? ys[0][1] : 0;
+    // Affectations + tickets pris par les consultants
+    var tx = takenMatrix(period.y), zero = [0,0,0,0,0,0,0,0,0,0,0,0];
+    var names = people.slice();
+    Object.keys(tx).forEach(function(p){ if (names.indexOf(p) < 0) names.push(p); });
+    var sumOf = function(arr){ return (arr || zero).reduce(function(a, b){ return a + b; }, 0); };
+    var monthSplit = names.map(function(p){ return [p, (mx[p] || zero)[period.m], (tx[p] || zero)[period.m]]; })
+      .sort(function(a, b){ return (b[1] + b[2]) - (a[1] + a[2]) || a[0].localeCompare(b[0], 'fr'); });
+    $('monthRanking2').innerHTML = rankingSplitHTML(monthSplit);
+
+    // Tableau annuel personne × mois : affectations · tickets pris
+    var colA = zero.slice(), colT = zero.slice(), totA = 0, totT = 0;
+    var yearRows = names.map(function(p){ return [p, sumOf(mx[p]), sumOf(tx[p])]; })
+      .sort(function(a, b){ return (b[1] + b[2]) - (a[1] + a[2]) || a[0].localeCompare(b[0], 'fr'); });
+    var topTotal = yearRows.length ? yearRows[0][1] + yearRows[0][2] : 0;
     var th = '<thead><tr><th>Personne</th>' + MONTHS_SHORT.map(function(m, i){
       return '<th' + (i === period.m ? ' class="cur"' : '') + '>' + m + '</th>';
     }).join('') + '<th class="total">Total</th></tr></thead>';
-    var body = ys.map(function(e){
-      var p = e[0];
-      return '<tr><td>' + esc(p) + (topTotal > 0 && e[1] === topTotal ? '<span class="rank-pill">' + ordinal(1) + '</span>' : '') + '</td>' +
-        mx[p].map(function(v, i){
-          colTotals[i] += v;
-          var cls = [v ? '' : 'zero', i === period.m ? 'cur' : ''].join(' ').trim();
-          return '<td' + (cls ? ' class="' + cls + '"' : '') + '>' + (v ? nf.format(v) : '–') + '</td>';
-        }).join('') + '<td class="total">' + nf.format(e[1]) + '</td></tr>';
+    var body = yearRows.map(function(e){
+      var p = e[0], a = mx[p] || zero, t = tx[p] || zero;
+      totA += e[1]; totT += e[2];
+      return '<tr><td>' + esc(p) + (topTotal > 0 && e[1] + e[2] === topTotal ? '<span class="rank-pill">' + ordinal(1) + '</span>' : '') + '</td>' +
+        a.map(function(v, i){ colA[i] += v; colT[i] += t[i]; return pairCell(v, t[i], i === period.m ? 'cur' : ''); }).join('') +
+        pairCell(e[1], e[2], 'total') + '</tr>';
     }).join('');
-    var foot = ys.length ? '<tfoot><tr><td>Total</td>' + colTotals.map(function(v, i){
-      return '<td' + (i === period.m ? ' class="cur"' : '') + '>' + nf.format(v) + '</td>';
-    }).join('') + '<td>' + nf.format(yearTotal) + '</td></tr></tfoot>' : '';
+    var foot = yearRows.length ? '<tfoot><tr><td>Total</td>' + colA.map(function(v, i){
+      return pairCell(v, colT[i], i === period.m ? 'cur' : '');
+    }).join('') + pairCell(totA, totT, 'total') + '</tr></tfoot>' : '';
     $('yearTable').innerHTML = th + '<tbody>' + (body || '<tr><td colspan="14" class="empty" style="text-align:left">Aucune personne pour l\'instant.</td></tr>') + '</tbody>' + foot;
 
     if (!$('panel-stats').hidden) animateBars($('panel-stats'));
   }
+
+
+  /* ---------- Tickets pris par les consultants ---------- */
+  // Liste importée à part : ces tickets n'entrent ni dans les sessions ni dans les archives,
+  // ils complètent seulement les statistiques.
+  var takenAvailable = true; // false tant que la mise à jour 002 n'a pas été exécutée dans Supabase
+  var tk = null;             // aperçu : { header, rows, map: { id, person, date, label } }
+  var takenUndo = null;
+
+  // Retrouve la personne de la liste à partir du nom exporté (« Antoine Lancelot », « LANCELOT Antoine »…)
+  function matchPerson(raw){
+    var n = norm(raw); if (!n) return '';
+    var flat = n.replace(/-/g, ' '), tokens = n.split(/[\s,;]+/);
+    var list = allPeople().slice().sort(function(a, b){ return b.length - a.length; });
+    for (var i = 0; i < list.length; i++){
+      var pn = norm(list[i]), pflat = pn.replace(/-/g, ' ');
+      if (flat === pflat || flat.indexOf(pflat + ' ') === 0 || tokens.indexOf(pn) >= 0) return list[i];
+    }
+    return '';
+  }
+  function guessCol(header, re, used){
+    for (var j = 0; j < header.length; j++) if (used.indexOf(j) < 0 && re.test(norm(header[j]))) return j;
+    return -1;
+  }
+  function buildTaken(){
+    var rows = parseTSV($('takenPaste').value);
+    if (!rows.length){ tk = null; renderTaken(); return; }
+    var header = rows[0].map(function(h, j){ return h.trim() || 'Colonne ' + (j + 1); });
+    var map = tk && tk.header.join('\t') === header.join('\t') ? tk.map : null;
+    if (!map){
+      var used = [], idName = norm(state.columns[0] || '');
+      map = { id: -1, person: -1, date: -1, label: -1 };
+      for (var j = 0; j < header.length; j++) if (idName && norm(header[j]) === idName){ map.id = j; break; }
+      if (map.id < 0) map.id = guessCol(header, /ticket|numero|^n°|^no\b|^id\b|reference|incident/, used);
+      if (map.id < 0) map.id = 0;
+      used.push(map.id);
+      map.person = guessCol(header, /affect|attribu|assign|technicien|consultant|responsable|agent|intervenant|proprietaire|owner/, used); used.push(map.person);
+      map.date = guessCol(header, /^cree|creat|^date|ouvert|^pris|prise/, used); used.push(map.date);
+      map.label = guessCol(header, /sujet|titre|objet|resume|libelle|description/, used);
+    }
+    tk = { header: header, rows: rows.slice(1), map: map };
+    renderTaken();
+  }
+  function analyzeTaken(){
+    var m = tk.map, errors = [], warns = [], counts = { 'new': 0, upd: 0, skip: 0 }, seen = {}, unknown = {};
+    if (m.person < 0) errors.push('Choisissez la colonne du consultant.');
+    if (m.date < 0) errors.push('Choisissez la colonne de date.');
+    var known = {}, team = {};
+    state.taken.forEach(function(t){ known[t.id] = t; });
+    allTickets().forEach(function(t){ var k = (t.cells[0] || '').trim(); if (k && t.assignee) team[k] = t; });
+    var rows = tk.rows.map(function(r){
+      var id = (r[m.id] || '').trim();
+      var raw = m.person >= 0 ? (r[m.person] || '').trim() : '', person = matchPerson(raw);
+      var d = m.date >= 0 ? parseDate(r[m.date]) : null, label = m.label >= 0 ? (r[m.label] || '').trim() : '';
+      var status = 'new', note = '';
+      if (!id){ status = 'skip'; note = 'identifiant vide'; }
+      else if (seen[id]){ status = 'skip'; note = 'en double dans le collage'; }
+      else if (team[id]){ status = 'skip'; note = 'déjà affecté par l\'équipe (' + team[id].assignee + ')'; }
+      else if (!person){ status = 'skip'; note = raw ? 'consultant non reconnu' : 'consultant vide'; if (raw) unknown[raw] = true; }
+      else if (!d){ status = 'skip'; note = 'date illisible'; }
+      else if (known[id]){ status = 'upd'; note = 'déjà importé : mis à jour'; }
+      if (id) seen[id] = true;
+      counts[status]++;
+      return { id: id, raw: raw, person: person, day: d ? isoDay(d) : '', label: label, status: status, note: note };
+    });
+    var unk = Object.keys(unknown);
+    if (unk.length) warns.push('Consultants non reconnus : ' + unk.map(function(u){ return '« ' + esc(u) + ' »'; }).join(', ') +
+      '. Ajoutez-les dans « Personnes pour l\'affectation » (onglet Tickets, Importer depuis Excel), puis recollez.');
+    if (counts.skip) warns.push(plural(counts.skip, 'ligne ignorée', 'lignes ignorées') + ' (voir le statut de chaque ligne).');
+    if (!rows.length) errors.push('Aucune ligne sous les en-têtes.');
+    return { errors: errors, warns: warns, rows: rows, counts: counts };
+  }
+  function renderTaken(){
+    var n = state.taken.length;
+    $('takenTag').textContent = plural(n, 'ticket pris enregistré', 'tickets pris enregistrés');
+    $('takenMissing').hidden = takenAvailable;
+    $('takenPaste').disabled = !takenAvailable;
+    var box = $('takenPreview');
+    if (!tk){ box.hidden = true; return; }
+    box.hidden = false;
+    var a = analyzeTaken(), m = tk.map;
+    var fields = [['id', 'Identifiant', false], ['person', 'Consultant', false], ['date', 'Date', false], ['label', 'Sujet', true]];
+    $('takenMap').innerHTML = fields.map(function(f){
+      return '<label>' + f[1] + '<select data-field="' + f[0] + '">' +
+        (f[2] || f[0] !== 'id' ? '<option value="-1">' + (f[2] ? '— Aucune —' : '— Choisir —') + '</option>' : '') +
+        tk.header.map(function(h, j){ return '<option value="' + j + '"' + (m[f[0]] === j ? ' selected' : '') + '>' + esc(h) + '</option>'; }).join('') +
+        '</select></label>';
+    }).join('');
+    $('takenIssues').innerHTML =
+      a.errors.map(function(t){ return '<li class="issue err"><strong>À corriger :</strong> ' + t + '</li>'; }).join('') +
+      a.warns.map(function(t){ return '<li class="issue warn">' + t + '</li>'; }).join('');
+    var labels = { 'new': 'Nouveau', upd: 'Mise à jour', skip: 'Ignorée' };
+    $('takenTable').innerHTML = '<thead><tr><th>Statut</th><th>Identifiant</th><th>Consultant</th><th>Date</th><th>Sujet</th></tr></thead><tbody>' +
+      a.rows.slice(0, PREVIEW_LIMIT).map(function(r){
+        return '<tr' + (r.status === 'skip' ? ' class="r-skip"' : '') + '><td><span class="st ' + r.status + '">' + labels[r.status] + '</span>' +
+          (r.note ? '<span class="st-note">' + esc(r.note) + '</span>' : '') + '</td>' +
+          '<td>' + esc(r.id) + '</td><td>' + (r.person ? '<strong>' + esc(r.person) + '</strong>' + (norm(r.raw) !== norm(r.person) ? ' <span class="muted-text">(' + esc(r.raw) + ')</span>' : '') : esc(r.raw)) + '</td>' +
+          '<td>' + (r.day ? fmtDay(r.day) : '') + '</td><td class="c-long"><div class="clamp">' + esc(r.label) + '</div></td></tr>';
+      }).join('') + '</tbody>';
+    var more = a.rows.length - PREVIEW_LIMIT;
+    $('takenMore').textContent = more > 0 ? '… et ' + plural(more, 'autre ligne', 'autres lignes') + ', traitées selon les mêmes règles.' : '';
+    var total = a.counts['new'] + a.counts.upd, btn = $('takenImport');
+    btn.disabled = !takenAvailable || a.errors.length > 0 || total === 0;
+    btn.textContent = total ? 'Importer ' + plural(total, 'ticket pris', 'tickets pris') : 'Importer';
+  }
+  function setTakenOpen(open){
+    $('takenPanel').hidden = !open;
+    $('takenToggle').setAttribute('aria-expanded', open ? 'true' : 'false');
+    $('takenToggle').textContent = open ? 'Fermer l\'import' : 'Importer des tickets pris';
+    if (open){ renderTaken(); if (takenAvailable) $('takenPaste').focus(); }
+  }
+  $('takenToggle').addEventListener('click', function(){ setTakenOpen($('takenPanel').hidden); });
+  var takenTimer;
+  $('takenPaste').addEventListener('input', function(){ clearTimeout(takenTimer); takenTimer = setTimeout(buildTaken, 250); });
+  $('takenMap').addEventListener('change', function(e){
+    var f = e.target.dataset.field; if (!f || !tk) return;
+    tk.map[f] = +e.target.value; renderTaken();
+  });
+  $('takenCancel').addEventListener('click', function(){ $('takenPaste').value = ''; tk = null; renderTaken(); });
+  $('takenImport').addEventListener('click', function(){
+    if (!tk) return;
+    var a = analyzeTaken(); if (a.errors.length) return;
+    var n = 0;
+    a.rows.forEach(function(r){
+      if (r.status === 'skip') return;
+      var ex = state.taken.filter(function(t){ return t.id === r.id; })[0];
+      if (ex){ ex.person = r.person; ex.takenOn = r.day; if (r.label) ex.label = r.label; }
+      else state.taken.push({ id: r.id, person: r.person, takenOn: r.day, label: r.label });
+      n++;
+    });
+    takenUndo = save();
+    audit('tickets_pris_importes', { tickets: n });
+    $('takenPaste').value = ''; tk = null;
+    renderTaken(); renderStats();
+    $('takenMsg').innerHTML = '<strong>' + plural(n, 'ticket pris importé', 'tickets pris importés') + '.</strong> ' +
+      '<button type="button" class="link-btn" id="takenUndoBtn">Annuler cet import</button>';
+  });
+  $('takenMsg').addEventListener('click', function(e){
+    if (e.target.id !== 'takenUndoBtn' || !takenUndo) return;
+    applyInverse(takenUndo); takenUndo = null;
+    save(); audit('annulation', { operation: 'cet import de tickets pris' });
+    renderTaken(); renderStats();
+    $('takenMsg').innerHTML = '<strong>Import annulé.</strong>';
+  });
 
   /* ---------- Barres animées ---------- */
   function animateBars(scope){
@@ -2014,7 +2259,7 @@ td input[type=date]{padding:4px 8px}
   $('tab-archive').tabIndex = -1;
   $('tab-stats').tabIndex = -1;
 
-  function renderAll(){ renderRole(); renderModel(); renderPeople(); renderTickets(); renderStats(); renderBanner(); renderArchive(); renderSessions(); renderUndo(); }
+  function renderAll(){ renderRole(); renderModel(); renderPeople(); renderTickets(); renderStats(); renderBanner(); renderArchive(); renderSessions(); renderUndo(); renderTaken(); }
 
   /* ---------- Rôle de l'utilisateur ---------- */
   function renderRole(){
@@ -2026,7 +2271,8 @@ td input[type=date]{padding:4px 8px}
   /* ---------- Synchronisation avec Supabase ---------- */
   var db = null;
   // Dernier état connu de la base, ligne par ligne (JSON), pour n'envoyer que les différences
-  var synced = { settings: null, people: {}, sessions: {}, tickets: {} };
+  var synced = { settings: null, people: {}, sessions: {}, tickets: {}, taken: {} };
+  var COLLECTIONS = ['people', 'sessions', 'tickets', 'taken'];
   var hasSettingsRow = false;
   var queue = Promise.resolve(), pending = 0;
 
@@ -2041,6 +2287,8 @@ td input[type=date]{padding:4px 8px}
     if (r.session_id){ t.sessionId = r.session_id; t.archivedAt = r.archived_at; }
     return t;
   }
+  function takenRow(t){ return { id: t.id, person: t.person, taken_on: t.takenOn, label: t.label || null }; }
+  function takenFromRow(r){ return { id: r.id, person: r.person, takenOn: r.taken_on, label: r.label || '' }; }
   function dropTicket(id){
     state.tickets = state.tickets.filter(function(t){ return t.id !== id; });
     state.archive = state.archive.filter(function(t){ return t.id !== id; });
@@ -2053,16 +2301,17 @@ td input[type=date]{padding:4px 8px}
     list.push(t);
   }
   function snapshot(){
-    var snap = { settings: state.columns.length || hasSettingsRow ? settingsRow() : null, people: {}, sessions: {}, tickets: {} };
+    var snap = { settings: state.columns.length || hasSettingsRow ? settingsRow() : null, people: {}, sessions: {}, tickets: {}, taken: {} };
     state.people.forEach(function(p){ snap.people[p] = { name: p }; });
     state.sessions.forEach(function(s){ snap.sessions[s.id] = sessionRow(s); });
     allTickets().forEach(function(t){ snap.tickets[t.id] = ticketRow(t); });
+    state.taken.forEach(function(t){ snap.taken[t.id] = takenRow(t); });
     return snap;
   }
   function markSynced(){
     var snap = snapshot();
-    synced = { settings: snap.settings ? JSON.stringify(snap.settings) : null, people: {}, sessions: {}, tickets: {} };
-    ['people', 'sessions', 'tickets'].forEach(function(c){
+    synced = { settings: snap.settings ? JSON.stringify(snap.settings) : null, people: {}, sessions: {}, tickets: {}, taken: {} };
+    COLLECTIONS.forEach(function(c){
       Object.keys(snap[c]).forEach(function(id){ synced[c][id] = JSON.stringify(snap[c][id]); });
     });
   }
@@ -2071,9 +2320,9 @@ td input[type=date]{padding:4px 8px}
   // et renvoie l'opération inverse (utilisée par « Annuler »).
   function commit(){
     var snap = snapshot();
-    var inv = { people: {}, sessions: {}, tickets: {} };
-    var up = { people: [], sessions: [], tickets: [] }, del = { people: [], sessions: [], tickets: [] };
-    ['people', 'sessions', 'tickets'].forEach(function(c){
+    var inv = { people: {}, sessions: {}, tickets: {}, taken: {} };
+    var up = { people: [], sessions: [], tickets: [], taken: [] }, del = { people: [], sessions: [], tickets: [], taken: [] };
+    COLLECTIONS.forEach(function(c){
       var prev = synced[c], cur = snap[c];
       Object.keys(cur).forEach(function(id){
         var j = JSON.stringify(cur[id]);
@@ -2095,7 +2344,7 @@ td input[type=date]{padding:4px 8px}
         settings = snap.settings; synced.settings = sj; hasSettingsRow = true;
       }
     }
-    var changed = settings || ['people', 'sessions', 'tickets'].some(function(c){ return up[c].length || del[c].length; });
+    var changed = settings || COLLECTIONS.some(function(c){ return up[c].length || del[c].length; });
     if (changed && db) enqueue(function(){ return push(settings, up, del); });
     return inv;
   }
@@ -2110,6 +2359,10 @@ td input[type=date]{padding:4px 8px}
     await remove('sessions', 'id', del.sessions);
     for (var b = chunks(del.tickets, 200), k = 0; k < b.length; k++) await remove('tickets', 'id', b[k]);
     await remove('people', 'name', del.people);
+    if (takenAvailable){
+      for (var c = chunks(up.taken, 500), x = 0; x < c.length; x++) check(await db.from('self_tickets').upsert(c[x]));
+      for (var d = chunks(del.taken, 200), y = 0; y < d.length; y++) await remove('self_tickets', 'id', d[y]);
+    }
   }
   // Une suppression refusée par les droits ne renvoie pas d'erreur : on vérifie qu'il ne reste rien
   async function remove(table, col, ids){
@@ -2159,6 +2412,9 @@ td input[type=date]{padding:4px 8px}
     next.people = res[1].map(function(p){ return p.name; });
     next.sessions = res[2].map(function(r){ return { id: r.id, at: r.at }; });
     res[3].forEach(function(r){ var t = ticketFromRow(r); (t.sessionId ? next.archive : next.tickets).push(t); });
+    // Tickets pris : table ajoutée par la mise à jour 002, peut-être pas encore créée
+    try { next.taken = (await fetchAll('self_tickets', 'created_at')).map(takenFromRow); takenAvailable = true; }
+    catch(err){ console.warn('Table self_tickets indisponible', err); takenAvailable = false; next.taken = []; }
     state = normalize(next);
     markSynced();
   }
@@ -2174,7 +2430,7 @@ td input[type=date]{padding:4px 8px}
     renderTimer = setTimeout(function(){ state = normalize(state); renderAll(); if (modelChanged && pv) buildPreview(); }, 150);
   }
   function subscribe(){
-    db.channel('affectation')
+    var ch = db.channel('affectation')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tickets' }, function(p){
         if (p.eventType === 'DELETE'){
           var id = p.old && p.old.id;
@@ -2214,8 +2470,20 @@ td input[type=date]{padding:4px 8px}
         state = normalize(state);
         synced.settings = JSON.stringify(settingsRow());
         scheduleRender(true);
-      })
-      .subscribe();
+      });
+    if (takenAvailable) ch.on('postgres_changes', { event: '*', schema: 'public', table: 'self_tickets' }, function(p){
+        if (p.eventType === 'DELETE'){
+          var id = p.old && p.old.id;
+          if (!id || !(id in synced.taken)) return;
+          state.taken = state.taken.filter(function(t){ return t.id !== id; }); delete synced.taken[id];
+        } else {
+          var t = takenFromRow(p['new']), j = JSON.stringify(takenRow(t));
+          if (synced.taken[t.id] === j) return;
+          state.taken = state.taken.filter(function(x){ return x.id !== t.id; }).concat([t]); synced.taken[t.id] = j;
+        }
+        scheduleRender();
+      });
+    ch.subscribe();
   }
 
   /* ---------- Journal des actions ---------- */
@@ -2225,7 +2493,7 @@ td input[type=date]{padding:4px 8px}
       .then(function(res){ if (res.error) console.error(res.error); });
   }
   var AUDIT_LABELS = {
-    'import': 'Import', session_validee: 'Session validée', session_supprimee: 'Session supprimée',
+    'import': 'Import', tickets_pris_importes: 'Tickets pris importés', session_validee: 'Session validée', session_supprimee: 'Session supprimée',
     modele_modifie: 'Modèle de colonnes modifié', tickets_vides: 'Tickets vidés', sauvegarde_restauree: 'Sauvegarde restaurée',
     donnees_locales_envoyees: 'Données de l\'ancienne version envoyées', annulation: 'Annulation',
     ticket_supprime: 'Ticket supprimé', ticket_desarchive: 'Ticket remis en session',
@@ -2239,6 +2507,7 @@ td input[type=date]{padding:4px 8px}
       case 'session_supprimee': return 'session du ' + fmtDateTime(d.at) + ' · ' + plural(d.tickets || 0, 'ticket', 'tickets');
       case 'modele_modifie': return (d.colonnes || []).join(' · ');
       case 'tickets_vides': return plural(d.tickets || 0, 'ticket', 'tickets');
+      case 'tickets_pris_importes': return plural(d.tickets || 0, 'ticket', 'tickets');
       case 'sauvegarde_restauree': case 'donnees_locales_envoyees':
         return plural(d.tickets || 0, 'ticket en cours', 'tickets en cours') + ', ' + plural(d.archives || 0, 'archivé', 'archivés');
       case 'annulation': return d.operation || '';
@@ -2271,7 +2540,9 @@ td input[type=date]{padding:4px 8px}
       plural(s.tickets.length, 'ticket en cours', 'tickets en cours') + ', ' + plural((s.archive || []).length, 'ticket archivé', 'tickets archivés') + '.';
   }
   function replaceAll(s, action){
+    var keepTaken = state.taken;
     state = normalize(JSON.parse(JSON.stringify(s)));
+    state.taken = keepTaken;
     save(); clearUndo();
     audit(action, { tickets: state.tickets.length, archives: state.archive.length });
     renderAll(); if (pv) buildPreview();

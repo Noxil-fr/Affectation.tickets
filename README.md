@@ -23,6 +23,8 @@ Les actions importantes sont inscrites dans le **journal** (roue crantée en hau
 1. Sur [supabase.com](https://supabase.com), créez un projet en **région Europe** (Francfort ou Paris).
 2. **Authentication → Sign In / Providers** : désactivez **Allow new users to sign up**. Seuls les comptes invités pourront se connecter.
 3. **SQL Editor → New query** : collez le contenu de [`supabase/schema.sql`](supabase/schema.sql), puis cliquez sur **Run**.
+4. Exécutez de la même façon les mises à jour, dans l'ordre :
+   - [`supabase/002_tickets_pris.sql`](supabase/002_tickets_pris.sql) : tickets pris directement par les consultants (onglet Statistiques).
 
 ### 2. Renseigner la page
 Dans `index.html`, remplacez ces deux valeurs par celles de **Project Settings → API** :
