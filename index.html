@@ -12,6 +12,7 @@
   --bg:#f6f7fb;--surface:#ffffff;--surface-2:#eef1f7;--text:#141a2a;--muted:#5d6680;
   --line:#e1e5ef;--accent:#2f6bff;--accent-soft:rgba(47,107,255,.12);
   --gold:#d99a00;--gold-soft:rgba(217,154,0,.14);--bar-other:#c9d0e0;
+  --violet:#7a4ddb;--violet-soft:rgba(122,77,219,.12);
   --danger:#d64545;--danger-soft:rgba(214,69,69,.12);
   --shadow:0 1px 2px rgba(20,26,42,.05),0 8px 24px rgba(20,26,42,.06);
   color-scheme:light;
@@ -21,6 +22,7 @@
     --bg:#0f131c;--surface:#171c28;--surface-2:#1f2635;--text:#e8ecf5;--muted:#97a1b8;
     --line:#283044;--accent:#5b8cff;--accent-soft:rgba(91,140,255,.16);
     --gold:#f2b92c;--gold-soft:rgba(242,185,44,.14);--bar-other:#343d52;--shadow:none;
+    --violet:#b08cff;--violet-soft:rgba(176,140,255,.16);
     --danger:#ff7b7b;--danger-soft:rgba(255,123,123,.14);
     color-scheme:dark;
   }
@@ -29,6 +31,7 @@
   --bg:#0f131c;--surface:#171c28;--surface-2:#1f2635;--text:#e8ecf5;--muted:#97a1b8;
   --line:#283044;--accent:#5b8cff;--accent-soft:rgba(91,140,255,.16);
   --gold:#f2b92c;--gold-soft:rgba(242,185,44,.14);--bar-other:#343d52;--shadow:none;
+    --violet:#b08cff;--violet-soft:rgba(176,140,255,.16);
     --danger:#ff7b7b;--danger-soft:rgba(255,123,123,.14);
   color-scheme:dark;
 }
@@ -159,8 +162,6 @@ body.is-admin .user-only{display:none!important}
 .help{font-size:13px;color:var(--muted);margin:8px 0 0}
 
 /* Pastille de rang */
-.rank-pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;margin-left:10px;color:#fff;background:var(--gold);line-height:1.2;vertical-align:middle}
-.rank-pill.second{background:var(--accent)}
 
 /* Formulaires */
 textarea,input[type=text],input[type=date],input[type=month],input[type=search],select{
@@ -208,7 +209,14 @@ textarea{width:100%;min-height:130px;resize:vertical;font-size:13px;font-family:
 
 #arTable th{font-size:11px;letter-spacing:.04em}
 #arTable tbody tr:nth-child(even) td{background:color-mix(in srgb,var(--surface-2) 45%,var(--surface))}
-#arTable tbody tr:hover td{background:var(--accent-soft)}
+#arTable tbody tr:hover td,#arTable tbody tr:nth-child(even):hover td{background:var(--accent-soft)}
+#arTable .del{opacity:0;transition:opacity .15s;padding:2px 6px}
+#arTable tr:hover .del,#arTable .del:focus-visible{opacity:1}
+@media (hover:none){#arTable .del{opacity:1}}
+#arTable .del.restore:hover{color:var(--accent)}
+/* Affectation en lecture seule : même pastille que dans les tickets, sans liste */
+.who{display:inline-block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle;padding:3px 10px;border-radius:999px;font-size:12.5px;font-weight:500;background:var(--accent-soft);color:var(--accent)}
+.who.none{background:var(--gold-soft);color:var(--text);border:1px solid var(--gold)}
 #pvTable tr.r-arch td:not(:first-child){opacity:.45}
 .st.arch{background:var(--surface-2);color:var(--muted)}
 th.sortable{cursor:pointer;user-select:none}
@@ -218,8 +226,15 @@ th.sortable:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 #ticketTable td.narrow,#arTable td.narrow{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Lecture des tableaux de tickets */
 .tickets-wrap{max-height:calc(100vh - 160px);overflow:auto}
-#ticketTable th,#arTable th{position:sticky;top:0;z-index:1;padding:9px 10px;box-shadow:inset 0 -1px 0 var(--line);border-bottom:0}
-#ticketTable td,#arTable td{padding:8px 10px;line-height:1.4}
+#ticketTable th,#arTable th,#arTakenTable th{position:sticky;top:0;z-index:1;padding:9px 10px;box-shadow:inset 0 -1px 0 var(--line);border-bottom:0}
+#ticketTable td,#arTable td,#arTakenTable td{padding:8px 10px;line-height:1.4}
+/* Archives : tickets pris par les consultants */
+#arSessions[hidden],#arTaken[hidden],#arSessionsWrap[hidden],#arTakenWrap[hidden],#arSession[hidden],#arTakenSession[hidden]{display:none}
+#arTakenTable{font-size:12.5px}
+#arTakenTable th{font-size:11px;letter-spacing:.04em}
+#arTakenTable tbody tr:nth-child(even) td{background:color-mix(in srgb,var(--surface-2) 45%,var(--surface))}
+#arTakenTable tbody tr:hover td,#arTakenTable tbody tr:nth-child(even):hover td{background:var(--gold-soft)}
+.who.self{background:var(--gold-soft);color:var(--text)}
 td.c-id{font-weight:600;color:var(--text);white-space:nowrap}
 td.c-date{color:var(--muted);white-space:nowrap}
 td.c-long{white-space:normal}
@@ -240,6 +255,11 @@ td.c-long{white-space:normal}
   background-repeat:no-repeat;background-position:right 9px center;
   text-overflow:ellipsis;white-space:nowrap;overflow:hidden;transition:background-color .15s,border-color .15s;
 }
+/* Ligne d'ajout manuel : collée en bas du tableau pendant le défilement */
+#ticketTable tfoot td{position:sticky;bottom:0;z-index:1;padding:8px 6px;background:var(--accent-soft);background-color:color-mix(in srgb,var(--accent) 8%,var(--surface));border-top:2px solid var(--accent);border-bottom:0;vertical-align:middle}
+#ticketTable tfoot input,#ticketTable tfoot select{width:100%;min-width:90px;font-size:12.5px;padding:5px 8px;background:var(--surface)}
+#ticketTable tfoot .bad{border-color:var(--danger);outline:2px solid var(--danger-soft)}
+#ticketTable tfoot .btn{font-size:12.5px;padding:5px 12px;white-space:nowrap}
 #ticketTable .assign.is-set{border-color:transparent;background-color:var(--accent-soft);color:var(--accent)}
 #ticketTable .assign:hover,#ticketTable .assign[aria-expanded="true"]{border-color:var(--accent)}
 #ticketTable .assign:focus-visible{outline:2px solid var(--accent-soft);border-color:var(--accent)}
@@ -401,15 +421,27 @@ td input[type=date]{padding:4px 8px}
 }
 
 /* Tableau annuel */
-.year-table th,.year-table td{padding:8px 10px;text-align:right}
-.year-table th:first-child,.year-table td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1}
+.year-table th,.year-table td{padding:7px 8px;text-align:center;font-variant-numeric:tabular-nums}
+.year-table th:first-child,.year-table td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1;padding-left:14px}
 .year-table th:first-child{background:var(--surface-2)}
-.year-table td.zero{color:var(--muted);opacity:.6}
-.year-table .cur{background:var(--accent-soft)}
-.year-table th.cur{color:var(--accent)}
-.year-table td.total,.year-table th.total{font-weight:600}
-.year-table tfoot td{font-weight:600;border-top:1px solid var(--line);border-bottom:0;background:var(--surface-2)}
+.year-table td:first-child{font-weight:600}
+.year-table tbody tr:hover td{box-shadow:inset 0 9999px 0 rgba(127,127,127,.06)}
+/* Case : total du mois en gros, détail affectés + pris en dessous ; fond violet selon le volume (--h de 0 à 1) */
+.yc{background:color-mix(in srgb,var(--violet) calc(var(--h,0) * 30%),transparent)}
+.yc b{display:block;font-size:15px;line-height:1.2}
+.yc small{display:block;font-size:11px;color:var(--muted);white-space:nowrap}
+.yc.zero{color:var(--muted);opacity:.45}
+.year-table th.cur{color:var(--text);box-shadow:inset 0 -3px 0 var(--violet)}
+.year-table td.cur{box-shadow:inset 1px 0 0 var(--violet-soft),inset -1px 0 0 var(--violet-soft)}
+.year-table .total{background:var(--violet-soft);border-left:2px solid var(--violet)}
+.year-table th.total,.year-table .total b{color:var(--violet)}
+.year-table tfoot td{border-top:2px solid var(--line);border-bottom:0;background:var(--surface-2)}
 .year-table tfoot td:first-child{background:var(--surface-2)}
+.year-table tfoot .yc{background:var(--surface-2)}
+.year-table tfoot .total{background:var(--violet-soft)}
+.yc-sample{display:inline-block;text-align:center;padding:3px 10px;border-radius:8px;background:var(--violet-soft);margin-right:6px;vertical-align:middle}
+.yc-sample b{display:block;font-size:14px;line-height:1.1;color:var(--text)}
+.yc-sample small{font-size:10.5px}
 
 .view-switch{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin:-6px 0 8px}
 .vs-right{justify-self:end}
@@ -422,22 +454,33 @@ td input[type=date]{padding:4px 8px}
 .taken-map select{font-size:13px;padding:5px 8px}
 #takenTable{font-size:12.5px}
 #takenTable th,#takenTable td{padding:6px 8px}
+.taken-scroll{max-height:60vh;overflow:auto}
+#takenTable td.c-long{min-width:260px}
+#takenTable td.c-extra{max-width:260px;overflow:hidden;text-overflow:ellipsis}
+#takenTable th{position:sticky;top:0;z-index:1;box-shadow:inset 0 -1px 0 var(--line);border-bottom:0}
 #takenTable tr.r-skip td:not(:first-child){opacity:.45}
 #takenTable tr.r-skip td{background:var(--danger-soft)}
 #takenPreview[hidden]{display:none}
 .muted-text{color:var(--muted)}
 .legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;color:var(--muted);margin:-6px 0 12px}
-.lg{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
-.lg.aff{background:var(--accent)}
-.lg.self{background:var(--gold)}
 .fill.split,.hl .fill.split{display:flex;background:transparent}
 .seg{display:block;height:100%}
 .seg.aff{background:var(--accent)}
 .seg.self{background:var(--gold)}
 .ranking-split .rank-row{grid-template-columns:24px 36px minmax(110px,190px) 1fr 64px}
+/* Volets des statistiques : une couleur par volet */
+.stat-card{--c:var(--accent);--c-soft:var(--accent-soft);border-top:4px solid var(--c)}
+.stat-card.self{--c:var(--gold);--c-soft:var(--gold-soft)}
+.stat-card.tot{--c:var(--violet);--c-soft:var(--violet-soft)}
+.stat-card h3{display:flex;align-items:center;gap:8px;color:var(--c);font-size:15px}
+.stat-card h3::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--c)}
+.stat-card h3 .tag{margin-left:auto;font-size:14px;padding:3px 12px;background:var(--c-soft);color:var(--c)}
+.stat-card .rank-row.hl{background:var(--c-soft)}
+.stat-card .rank-row.hl .avatar{background:var(--c);color:#fff}
+.stat-card .fill:not(.split){background:var(--c);opacity:.4}
+.stat-card .hl .fill:not(.split){opacity:1}
 .ranking-split .rank-score small{display:block;font-size:11px;font-weight:400;color:var(--muted)}
-.n-aff{font-weight:600}
-.n-sep{color:var(--muted);margin:0 4px}
+.n-aff{color:var(--accent);font-weight:600}
 .n-self{color:var(--gold);font-weight:600}
 @media (max-width:600px){.ranking-split .rank-row{grid-template-columns:24px 36px 1fr 56px}}
 .view-switch .tab{padding:7px 28px}
@@ -568,6 +611,7 @@ td input[type=date]{padding:4px 8px}
       <div class="section-head">
         <h2>Session en cours <span class="tag" id="ticketCount">0</span></h2>
         <div class="row no-print" style="align-items:flex-end">
+          <button class="btn primary" id="addTicketBtn" type="button" aria-expanded="false">Ajouter un ticket</button>
           <button class="btn" id="toggleImport" type="button" aria-expanded="false" aria-controls="importPanel">Importer depuis Excel</button>
           <div class="menu-wrap">
             <button class="btn" id="exportToggle" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="exportMenu">Exporter ▾</button>
@@ -641,24 +685,42 @@ td input[type=date]{padding:4px 8px}
 
   <!-- Onglet Archives -->
   <div id="panel-archive" role="tabpanel" aria-labelledby="tab-archive" hidden>
-    <section>
+    <div class="view-switch no-print">
+      <span></span>
+      <div class="tabs" role="group" aria-label="Type d'archives">
+        <button class="tab" type="button" data-arview="sessions" aria-pressed="true">Tickets affectés</button>
+        <button class="tab" type="button" data-arview="taken" aria-pressed="false">Tickets pris</button>
+      </div>
+      <span></span>
+    </div>
+    <section id="arSessions">
       <div class="section-head">
-        <h2>Tickets archivés <span class="tag" id="arCount">0</span></h2>
+        <h2>Tickets affectés <span class="tag" id="arCount">0</span></h2>
         <div class="row no-print"><button class="btn" id="arCopy" type="button">Copier pour Excel</button></div>
       </div>
       <p class="msg no-print" id="arMsg" style="margin:-6px 0 10px"></p>
-      <div class="toolbar">
-        <input type="search" id="arSearch" placeholder="Rechercher…">
-        <div class="row">
-          <select id="arSession" aria-label="Session"></select>
-          <select id="arPerson" aria-label="Personne" hidden></select>
-          <button type="button" class="filter-btn" id="arPersonBtn" aria-haspopup="listbox" aria-expanded="false">Toutes les personnes</button>
-        </div>
-      </div>
-      <div class="table-wrap tickets-wrap">
-        <table id="arTable"><thead></thead><tbody></tbody></table>
-      </div>
     </section>
+    <section id="arTaken" hidden>
+      <div class="section-head">
+        <h2>Tickets pris <span class="tag" id="arTakenCount">0</span></h2>
+      </div>
+      <p class="help" style="margin:-6px 0 10px">Tickets pris directement par les consultants, importés depuis Statistiques.</p>
+    </section>
+    <div class="toolbar">
+      <input type="search" id="arSearch" placeholder="Rechercher…">
+      <div class="row">
+        <select id="arSession" aria-label="Session"></select>
+        <select id="arTakenSession" aria-label="Session d'import" hidden></select>
+        <select id="arPerson" aria-label="Personne" hidden></select>
+        <button type="button" class="filter-btn" id="arPersonBtn" aria-haspopup="listbox" aria-expanded="false">Toutes les personnes</button>
+      </div>
+    </div>
+    <div class="table-wrap tickets-wrap" id="arSessionsWrap">
+      <table id="arTable"><thead></thead><tbody></tbody></table>
+    </div>
+    <div class="table-wrap tickets-wrap" id="arTakenWrap" hidden>
+      <table id="arTakenTable"><thead></thead><tbody></tbody></table>
+    </div>
   </div>
 
   <!-- Onglet Statistiques -->
@@ -668,6 +730,7 @@ td input[type=date]{padding:4px 8px}
       <div class="tabs" role="group" aria-label="Période des statistiques">
         <button class="tab" type="button" data-view="month" aria-pressed="true">Mois</button>
         <button class="tab" type="button" data-view="year" aria-pressed="false">Année</button>
+        <button class="tab" type="button" data-view="detail" aria-pressed="false">Année (détail)</button>
       </div>
       <span class="vs-right"><button class="btn" id="takenToggle" type="button" aria-expanded="false" aria-controls="takenPanel">Importer des tickets pris</button></span>
     </div>
@@ -676,13 +739,16 @@ td input[type=date]{padding:4px 8px}
         <h2 style="font-size:16px">Tickets pris par les consultants <span class="tag" id="takenTag"></span></h2>
       </div>
       <p class="msg err-text" id="takenMissing" hidden>La base doit être mise à jour avant d'utiliser cette fonction : exécutez le script <strong>supabase/002_tickets_pris.sql</strong> dans Supabase (SQL Editor), puis rechargez la page.</p>
-      <p class="help" style="margin:0 0 10px">Collez depuis Excel la liste des tickets que les consultants ont pris eux-mêmes, <strong>avec la ligne d'en-têtes</strong>. Il faut au minimum le n° de ticket, le consultant et la date. Un ticket déjà affecté par l'équipe n'est pas compté deux fois.</p>
-      <textarea id="takenPaste" placeholder="Copiez les tickets dans Excel avec la ligne d'en-têtes, puis collez ici…"></textarea>
+      <p class="help" style="margin:0 0 10px">Collez depuis Excel la liste des tickets que les consultants ont pris eux-mêmes. La ligne d'en-têtes est facultative. Un ticket déjà affecté par l'équipe n'est pas compté deux fois.</p>
+      <div class="order-hint">
+        <span class="order-title">Ordre des colonnes à respecter</span>
+        <ol class="order-list"><li>ID</li><li>Date de prise en charge</li><li>Pôle</li><li>Sujet</li><li>Demandeur</li><li>Organisation</li><li>Assigné</li></ol>
+      </div>
+      <textarea id="takenPaste" placeholder="Copiez les tickets dans Excel dans l'ordre ci-dessus, puis collez ici…"></textarea>
       <div id="takenPreview" hidden>
         <div class="taken-map" id="takenMap"></div>
         <ul class="issues" id="takenIssues"></ul>
-        <div class="table-wrap" style="margin-top:0"><table id="takenTable"></table></div>
-        <p class="help" id="takenMore"></p>
+        <div class="table-wrap taken-scroll" style="margin-top:0"><table id="takenTable"></table></div>
         <div class="row" style="justify-content:flex-end;margin-top:12px">
           <button class="btn" id="takenCancel" type="button">Annuler</button>
           <button class="btn primary" id="takenImport" type="button" disabled>Importer</button>
@@ -696,14 +762,18 @@ td input[type=date]{padding:4px 8px}
         <label class="period">Période <input type="month" id="monthPicker"></label>
       </div>
       <div class="grid">
-        <div class="card" id="monthRankCard">
-          <h3>Classement du mois</h3>
-          <ol class="ranking" id="monthRanking"></ol>
+        <div class="card stat-card aff">
+          <h3>Tickets affectés <span class="tag" id="monthAffTag"></span></h3>
+          <ol class="ranking" id="monthAff"></ol>
         </div>
-        <div class="card" id="monthTotalCard">
-          <h3>Affectations + tickets pris</h3>
-          <p class="legend"><span><i class="lg aff"></i>Affectations</span><span><i class="lg self"></i>Pris par le consultant</span></p>
-          <ol class="ranking ranking-split" id="monthRanking2"></ol>
+        <div class="card stat-card self">
+          <h3>Tickets pris <span class="tag" id="monthSelfTag"></span></h3>
+          <ol class="ranking ranking-self" id="monthSelf"></ol>
+        </div>
+        <div class="card stat-card tot">
+          <h3>Total <span class="tag" id="monthTotTag"></span></h3>
+          <p class="legend">Affectés + Pris</p>
+          <ol class="ranking ranking-split" id="monthTot"></ol>
         </div>
       </div>
     </section>
@@ -712,13 +782,41 @@ td input[type=date]{padding:4px 8px}
       <div class="section-head">
         <h2>L'année <span class="tag" id="yearTag"></span></h2>
         <div class="period">
-          <button class="btn" type="button" id="yearPrev" aria-label="Année précédente">‹</button>
-          <button class="btn" type="button" id="yearNext" aria-label="Année suivante">›</button>
+          <button class="btn" type="button" data-year-shift="-1" aria-label="Année précédente">‹</button>
+          <button class="btn" type="button" data-year-shift="1" aria-label="Année suivante">›</button>
+        </div>
+      </div>
+      <div class="grid">
+        <div class="card stat-card aff">
+          <h3>Tickets affectés <span class="tag" id="yearAffTag"></span></h3>
+          <ol class="ranking" id="yearAff"></ol>
+        </div>
+        <div class="card stat-card self">
+          <h3>Tickets pris <span class="tag" id="yearSelfTag"></span></h3>
+          <ol class="ranking ranking-self" id="yearSelf"></ol>
+        </div>
+        <div class="card stat-card tot">
+          <h3>Total <span class="tag" id="yearTotTag"></span></h3>
+          <p class="legend">Affectés + Pris</p>
+          <ol class="ranking ranking-split" id="yearTot"></ol>
+        </div>
+      </div>
+    </section>
+
+    <section id="statsDetail" hidden>
+      <div class="section-head">
+        <h2>L'année en détail <span class="tag" id="detailTag"></span></h2>
+        <div class="period">
+          <button class="btn" type="button" data-year-shift="-1" aria-label="Année précédente">‹</button>
+          <button class="btn" type="button" data-year-shift="1" aria-label="Année suivante">›</button>
         </div>
       </div>
       <div class="card">
-        <h3>Affectations par personne et par mois</h3>
-        <p class="legend"><span><span class="n-aff">8</span> affectations</span><span><span class="n-self">3</span> tickets pris par le consultant</span></p>
+        <h3>Tickets par personne et par mois</h3>
+        <p class="legend" style="align-items:center">
+          <span><span class="yc-sample"><b>11</b><small><span class="n-aff">8</span> + <span class="n-self">3</span></small></span>Total = <span class="n-aff">affectés</span> + <span class="n-self">pris</span></span>
+          <span>Plus la case est foncée, plus le total est élevé</span>
+        </p>
         <div class="table-wrap" style="margin-top:0">
           <table class="year-table" id="yearTable"></table>
         </div>
@@ -804,7 +902,6 @@ td input[type=date]{padding:4px 8px}
     var p = name.trim().split(/[\s\-_.]+/).filter(Boolean);
     return ((p[0] || '?')[0] + (p.length > 1 ? p[p.length - 1][0] : (p[0] || '').slice(1, 2))).toUpperCase();
   }
-  function ordinal(n){ return n === 1 ? '1<sup>er</sup>' : n + '<sup>e</sup>'; }
 
   /* ---------- Lecture du presse-papiers Excel (TSV) ---------- */
   function parseTSV(text){
@@ -1076,9 +1173,9 @@ td input[type=date]{padding:4px 8px}
         state.tickets.push(t); byKey[r.key] = t; added++;
       }
     });
-    var inv = save();
+    // Pas d'annulation proposée : les tickets restent dans la session en cours, « Vider les tickets » suffit
+    save();
     audit('import', { ajoutes: added, mis_a_jour: updated });
-    saveUndo(inv, 'import', 'Dernier import le {date} : <strong>' + plural(added, 'ticket ajouté', 'tickets ajoutés') + '</strong>' + (updated ? ', ' + updated + ' mis à jour' : '') + '.');
     $('pasteArea').value = '';
     pv = null; renderPreview();
     setImportOpen(false);
@@ -1086,7 +1183,7 @@ td input[type=date]{padding:4px 8px}
     renderAll();
   }
 
-  /* ---------- Annulation de la dernière opération (import, validation ou suppression de session) ---------- */
+  /* ---------- Annulation de la dernière opération (validation ou suppression de session) ---------- */
   // On garde l'inverse de l'opération (état précédent des seules lignes touchées),
   // pour ne pas écraser ce que les autres utilisateurs ont fait entre-temps.
   function undoKey(){ return UNDO_KEY + ':' + (me ? me.id : ''); }
@@ -1097,8 +1194,7 @@ td input[type=date]{padding:4px 8px}
   function clearUndo(){ try { localStorage.removeItem(undoKey()); } catch(e){} }
   var UNDO_LABELS = {
     session: ['Annuler la validation', 'cette validation de session', 'Validation annulée : les tickets, affectés ou non, sont revenus dans la session en cours.'],
-    'delete-session': ['Annuler la suppression', 'cette suppression de session', 'Suppression annulée : la session est de nouveau dans les archives.'],
-    'import': ['Annuler cet import', 'cet import', 'Import annulé.']
+    'delete-session': ['Annuler la suppression', 'cette suppression de session', 'Suppression annulée : la session est de nouveau dans les archives.']
   };
   function renderUndo(){
     var u = loadUndo();
@@ -1185,21 +1281,22 @@ td input[type=date]{padding:4px 8px}
     $('monthPicker').value = period.y + '-' + pad(period.m + 1);
     renderStats(); renderBanner(); animateBars($('panel-stats'));
   }
-  $('yearPrev').addEventListener('click', function(){ shiftYear(-1); });
-  $('yearNext').addEventListener('click', function(){ shiftYear(1); });
+  document.querySelectorAll('[data-year-shift]').forEach(function(b){
+    b.addEventListener('click', function(){ shiftYear(+b.dataset.yearShift); });
+  });
 
-  /* ---------- Bascule Mois / Année ---------- */
+  /* ---------- Bascule Mois / Année / Année (détail) ---------- */
+  var STATS_VIEWS = { month: 'statsMonth', year: 'statsYear', detail: 'statsDetail' };
   function setStatsView(view){
-    $('statsMonth').hidden = view !== 'month';
-    $('statsYear').hidden = view !== 'year';
-    document.querySelectorAll('.view-switch .tab').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.view === view ? 'true' : 'false'); });
+    Object.keys(STATS_VIEWS).forEach(function(v){ $(STATS_VIEWS[v]).hidden = v !== view; });
+    $('panel-stats').querySelectorAll('.view-switch .tab').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.view === view ? 'true' : 'false'); });
     try { localStorage.setItem('affectation-stats-view', view); } catch(e){}
     animateBars($('panel-stats'));
   }
-  document.querySelector('.view-switch').addEventListener('click', function(e){
+  $('panel-stats').querySelector('.view-switch').addEventListener('click', function(e){
     var b = e.target.closest('[data-view]'); if (b) setStatsView(b.dataset.view);
   });
-  try { if (localStorage.getItem('affectation-stats-view') === 'year') setStatsView('year'); } catch(e){}
+  try { var sv = localStorage.getItem('affectation-stats-view'); if (sv && sv !== 'month' && STATS_VIEWS[sv]) setStatsView(sv); } catch(e){}
 
   function allPeople(){
     var list = state.people.slice();
@@ -1352,6 +1449,7 @@ td input[type=date]{padding:4px 8px}
   }
   function renderTickets(){
     var table = $('ticketTable');
+    renderAddRow();
     renderFilterButton('filterPerson', 'filterPersonBtn');
     var q = $('search').value.trim().toLowerCase();
     var only = $('onlyUnassigned').checked, who = $('filterPerson').value;
@@ -1498,12 +1596,14 @@ td input[type=date]{padding:4px 8px}
   filterButton('arPerson', 'arPersonBtn', function(){
     var list = [];
     state.archive.forEach(function(t){ if (t.assignee && list.indexOf(t.assignee) < 0) list.push(t.assignee); });
+    state.taken.forEach(function(t){ if (t.person && list.indexOf(t.person) < 0) list.push(t.person); });
     return list;
   }, function(){
     var c = {};
     state.archive.forEach(function(t){ if (t.assignee) c[t.assignee] = (c[t.assignee] || 0) + 1; });
+    state.taken.forEach(function(t){ if (t.person) c[t.person] = (c[t.person] || 0) + 1; });
     return c;
-  }, 'Tickets archivés', renderArchive);
+  }, 'Tickets affectés + pris', renderArchive);
 
   $('pickerSearch').addEventListener('input', function(){ picker.active = 0; renderPicker(); positionPicker(); });
   $('pickerSearch').addEventListener('keydown', function(e){
@@ -1558,12 +1658,95 @@ td input[type=date]{padding:4px 8px}
     $('toggleImport').setAttribute('aria-expanded', open ? 'true' : 'false');
     $('toggleImport').textContent = open ? 'Fermer l\'import' : 'Importer depuis Excel';
     if (!open) return;
-    // Un nouvel import commence : l'annulation de l'import précédent n'est plus proposée
-    var u = loadUndo();
-    if (u && u.kind === 'import'){ clearUndo(); renderUndo(); }
     $('pasteArea').focus();
   }
   $('toggleImport').addEventListener('click', function(){ setImportOpen($('importPanel').hidden); });
+
+  /* ---------- Ajout manuel d'un ticket (ligne de saisie en bas du tableau) ---------- */
+  // Mêmes règles que l'import : colonnes obligatoires, pas de doublon en cours ni d'identifiant déjà archivé
+  var addOpen = false, addSig = '';
+  var POLES = ['Atelier', 'Magasin', 'Comptabilité', 'Vente VN-VO', 'Divers'];
+  function renderAddRow(){
+    var table = $('ticketTable'), foot = table.tFoot || table.createTFoot();
+    foot.classList.add('no-print');
+    foot.hidden = !addOpen || !state.columns.length;
+    // Reconstruite seulement si le modèle change, pour ne pas effacer la saisie en cours
+    var sig = JSON.stringify([state.columns, state.required]);
+    if (sig === addSig && foot.rows.length) return;
+    var prev = addValues();
+    addSig = sig;
+    var kinds = columnKinds(), sample = allTickets();
+    foot.innerHTML = '<tr class="add-row">' + state.columns.map(function(c, i){
+      var list = '';
+      if (kinds[i] === 'tag'){ // valeurs déjà utilisées dans cette colonne, proposées à la saisie
+        var seen = {};
+        sample.forEach(function(t){ var x = (t.cells[i] || '').trim(); if (x) seen[x] = true; });
+        list = '<datalist id="addList' + i + '">' + Object.keys(seen).sort().map(function(x){ return '<option value="' + esc(x) + '">'; }).join('') + '</datalist>';
+      }
+      var ph = c + (state.required[i] ? ' *' : '') + (kinds[i] === 'date' ? ' (jj/mm/aaaa)' : '');
+      if (/^poles?$/.test(norm(c))){ // Pôle : liste fixe
+        return '<td><select data-col="' + i + '" aria-label="' + esc(c) + '"><option value="">' + esc(ph) + '</option>' +
+          POLES.map(function(p){ return '<option' + (p === prev.cells[i] ? ' selected' : '') + '>' + esc(p) + '</option>'; }).join('') + '</select></td>';
+      }
+      return '<td><input type="text" data-col="' + i + '" placeholder="' + esc(ph) + '" aria-label="' + esc(c) + '" autocomplete="off"' +
+        (list ? ' list="addList' + i + '"' : '') + ' value="' + esc(prev.cells[i] || '') + '">' + list + '</td>';
+    }).join('') +
+      // L'affectation se fait ensuite depuis le tableau : sa cellule porte le bouton d'ajout
+      '<td><button class="btn primary add-ok" type="button" title="Ajouter ce ticket (Entrée)">Ajouter</button></td><td></td></tr>';
+  }
+  function addValues(){
+    var foot = $('ticketTable').tFoot, cells = [];
+    if (foot) foot.querySelectorAll('[data-col]').forEach(function(el){ cells[+el.dataset.col] = el.value.trim(); });
+    return { cells: cells };
+  }
+  function setAddOpen(open){
+    if (open && !state.columns.length){ notice('Aucun modèle de colonnes', 'Faites d\'abord un import depuis Excel : il crée le modèle de colonnes utilisé pour ajouter des tickets.'); return; }
+    addOpen = open;
+    $('addTicketBtn').textContent = open ? 'Fermer l\'ajout' : 'Ajouter un ticket';
+    $('addTicketBtn').classList.toggle('primary', !open);
+    $('addTicketBtn').setAttribute('aria-expanded', open ? 'true' : 'false');
+    renderAddRow();
+    if (open){
+      var wrap = $('ticketTable').closest('.tickets-wrap'); wrap.scrollTop = wrap.scrollHeight;
+      $('ticketTable').tFoot.querySelector('[data-col]').focus();
+    }
+  }
+  function submitAdd(){
+    var foot = $('ticketTable').tFoot, v = addValues();
+    var cells = state.columns.map(function(c, i){ return v.cells[i] || ''; }), key = cells[0];
+    foot.querySelectorAll('.bad').forEach(function(el){ el.classList.remove('bad'); });
+    var missing = [];
+    state.columns.forEach(function(c, i){ if (state.required[i] && !cells[i]){ missing.push(c); foot.querySelector('[data-col="' + i + '"]').classList.add('bad'); } });
+    var err = missing.length ? 'À compléter : ' + missing.map(function(c){ return '« ' + esc(c) + ' »'; }).join(', ') + '.'
+      : ticketsByKey()[key] ? 'Le ticket « ' + esc(key) + ' » est déjà dans la session en cours.'
+      : archivedByKey()[key] ? 'Le ticket « ' + esc(key) + ' » a déjà été archivé lors d\'une session précédente.'
+      : '';
+    var msg = $('tableMsg');
+    if (err){
+      if (!missing.length) foot.querySelector('[data-col="0"]').classList.add('bad');
+      msg.innerHTML = '<span class="err-text">' + err + '</span>';
+      (foot.querySelector('.bad') || foot.querySelector('[data-col]')).focus();
+      return;
+    }
+    state.tickets.push({ id: uid(), cells: cells, assignee: '', assignedAt: '' });
+    save(); audit('ticket_ajoute', { ticket: key });
+    foot.querySelectorAll('[data-col]').forEach(function(el){ el.value = ''; });
+    renderAll();
+    msg.innerHTML = 'Ticket <strong>' + esc(key) + '</strong> ajouté.';
+    // Une seule création à la fois : la ligne de saisie se ferme, le nouveau ticket reste visible en bas
+    setAddOpen(false);
+    var wrap = $('ticketTable').closest('.tickets-wrap'); wrap.scrollTop = wrap.scrollHeight;
+    $('addTicketBtn').focus();
+  }
+  $('addTicketBtn').addEventListener('click', function(){ setAddOpen(!addOpen); });
+  $('ticketTable').addEventListener('keydown', function(e){
+    if (!e.target.closest('.add-row')) return;
+    if (e.key === 'Enter'){ e.preventDefault(); submitAdd(); }
+    else if (e.key === 'Escape'){ e.preventDefault(); setAddOpen(false); $('addTicketBtn').focus(); }
+  });
+  $('ticketTable').addEventListener('click', function(e){ if (e.target.closest('.add-ok')) submitAdd(); });
+  $('ticketTable').addEventListener('input', function(e){ if (e.target.classList.contains('bad') && e.target.value.trim()) e.target.classList.remove('bad'); });
+
 
   /* ---------- Menu Exporter ---------- */
   function setMenuOpen(open){
@@ -1905,11 +2088,13 @@ td input[type=date]{padding:4px 8px}
     ss.value = curS; if (ss.value !== curS) ss.value = '';
     var sp = $('arPerson'), curP = sp.value, people = [];
     state.archive.forEach(function(t){ if (t.assignee && people.indexOf(t.assignee) < 0) people.push(t.assignee); });
+    state.taken.forEach(function(t){ if (t.person && people.indexOf(t.person) < 0) people.push(t.person); });
     people.sort(function(a, b){ return a.localeCompare(b, 'fr'); });
     sp.innerHTML = '<option value="">Toutes les personnes</option>' + people.map(function(p){ return '<option>' + esc(p) + '</option>'; }).join('');
     sp.value = curP; if (sp.value !== curP) sp.value = '';
     renderFilterButton('arPerson', 'arPersonBtn');
 
+    renderArchiveTaken();
     var rows = archiveRows(), table = $('arTable'), kinds = columnKinds();
     $('arCount').textContent = rows.length === state.archive.length ? nf.format(rows.length) : nf.format(rows.length) + ' / ' + nf.format(state.archive.length);
     $('tabArchiveSub').textContent = plural(state.archive.length, 'ticket', 'tickets');
@@ -1919,11 +2104,60 @@ td input[type=date]{padding:4px 8px}
       sortTh('archive', 'session', 'Session') + '<th class="no-print"></th></tr>';
     table.tBodies[0].innerHTML = rows.length ? rows.map(function(t){
       return '<tr data-id="' + t.id + '">' + t.cells.map(function(v, i){ return cellHTML(v, i, kinds[i]); }).join('') +
-        '<td>' + esc(t.assignee) + '</td><td>' + fmtDay(t.assignedAt) + '</td><td>' + sessionLabel(t.sessionId) + '</td>' +
+        '<td><span class="who' + (t.assignee ? '' : ' none') + '" title="' + esc(t.assignee || 'Non affecté') + '">' + esc(t.assignee || 'Non affecté') + '</span></td>' +
+        '<td class="c-date">' + fmtDay(t.assignedAt) + '</td><td class="c-date">' + sessionLabel(t.sessionId) + '</td>' +
         '<td class="no-print"><button class="del restore" type="button" title="Remettre dans la session en cours" aria-label="Remettre dans la session en cours">↩</button></td></tr>';
     }).join('') : '<tr><td colspan="' + (state.columns.length + 4) + '" class="empty" style="padding:20px;white-space:normal">' +
       (state.archive.length ? 'Aucun ticket archivé ne correspond aux filtres.' : 'Aucun ticket archivé. Les tickets arrivent ici quand vous cliquez sur « Valider la session ».') + '</td></tr>';
   }
+  /* ---------- Bascule Tickets affectés / Tickets pris ---------- */
+  function setArchiveView(view){
+    var taken = view === 'taken';
+    $('arSessions').hidden = $('arSessionsWrap').hidden = $('arSession').hidden = taken;
+    $('arTaken').hidden = $('arTakenWrap').hidden = $('arTakenSession').hidden = !taken;
+    $('panel-archive').querySelectorAll('[data-arview]').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.arview === view ? 'true' : 'false'); });
+    try { localStorage.setItem('affectation-archive-view', view); } catch(e){}
+  }
+  $('panel-archive').querySelector('.view-switch').addEventListener('click', function(e){
+    var b = e.target.closest('[data-arview]'); if (b) setArchiveView(b.dataset.arview);
+  });
+  try { if (localStorage.getItem('affectation-archive-view') === 'taken') setArchiveView('taken'); } catch(e){}
+
+  // Tickets pris importés depuis Statistiques, regroupés par import (« session ») : le plus récent en premier.
+  // Un import n'a pas d'identifiant en base : ses lignes partagent la même date d'enregistrement, à la minute près.
+  function takenSession(t){ return (t.importedAt || '').slice(0, 16); }
+  function renderArchiveTaken(){
+    var groups = {};
+    state.taken.forEach(function(t){
+      var k = takenSession(t), g = groups[k] = groups[k] || { at: t.importedAt, n: 0 };
+      g.n++;
+    });
+    var sel = $('arTakenSession'), cur = sel.value;
+    sel.innerHTML = '<option value="">Toutes les sessions</option>' + Object.keys(groups).sort().reverse().map(function(k){
+      return '<option value="' + esc(k) + '">' + (k ? fmtDateTime(groups[k].at) : 'Date inconnue') + ' · ' + plural(groups[k].n, 'ticket', 'tickets') + '</option>';
+    }).join('');
+    sel.value = cur; if (sel.value !== cur) sel.value = '';
+    var q = $('arSearch').value.trim().toLowerCase(), who = $('arPerson').value, ses = sel.value;
+    var rows = state.taken.filter(function(t){
+      if (ses && takenSession(t) !== ses) return false;
+      if (who && t.person !== who) return false;
+      if (q && [t.id, t.person, t.label].join(' ').toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    }).sort(function(a, b){
+      return (b.importedAt || '').localeCompare(a.importedAt || '') || (b.takenOn || '').localeCompare(a.takenOn || '') || a.id.localeCompare(b.id, 'fr', { numeric: true });
+    });
+    $('arTakenCount').textContent = rows.length === state.taken.length ? nf.format(rows.length) : nf.format(rows.length) + ' / ' + nf.format(state.taken.length);
+    $('arTakenTable').tHead.innerHTML = '<tr><th>Identifiant</th><th>Consultant</th><th>Date de prise en charge</th><th>Sujet</th><th>Session</th></tr>';
+    $('arTakenTable').tBodies[0].innerHTML = rows.length ? rows.map(function(t){
+      return '<tr><td class="c-id">' + esc(t.id) + '</td>' +
+        '<td><span class="who self" title="' + esc(t.person) + '">' + esc(t.person) + '</span></td>' +
+        '<td class="c-date">' + fmtDay(t.takenOn) + '</td>' +
+        '<td class="c-long"><div class="clamp" title="' + esc(t.label) + '">' + esc(t.label) + '</div></td>' +
+        '<td class="c-date">' + (t.importedAt ? fmtDateTime(t.importedAt) : '—') + '</td></tr>';
+    }).join('') : '<tr><td colspan="5" class="empty" style="padding:20px;white-space:normal">' +
+      (state.taken.length ? 'Aucun ticket pris ne correspond aux filtres.' : 'Aucun ticket pris pour l\'instant. Importez-les depuis l\'onglet Statistiques, bouton « Importer des tickets pris ».') + '</td></tr>';
+  }
+  $('arTakenSession').addEventListener('change', renderArchiveTaken);
   ['arSearch', 'arSession'].forEach(function(id){
     $(id).addEventListener(id === 'arSearch' ? 'input' : 'change', renderArchive);
   });
@@ -1983,11 +2217,10 @@ td input[type=date]{padding:4px 8px}
     return sorted.map(function(e, i){
       if (e[1] !== prev){ rank = i + 1; prev = e[1]; }
       var hl = rank === 1 && e[1] > 0;
-      var pill = e[1] > 0 && rank <= 2 ? '<span class="rank-pill' + (rank === 2 ? ' second' : '') + '">' + ordinal(rank) + '</span>' : '';
       return '<li class="rank-row' + (hl ? ' hl' : '') + '">' +
         '<span class="rank-n">' + rank + '</span>' +
         '<span class="avatar" aria-hidden="true">' + esc(initials(e[0])) + '</span>' +
-        '<span class="rank-name" title="' + esc(e[0]) + '">' + esc(e[0]) + pill + '</span>' +
+        '<span class="rank-name" title="' + esc(e[0]) + '">' + esc(e[0]) + '</span>' +
         '<span class="track"><span class="fill" data-v="' + e[1] + '" data-max="' + max + '"></span></span>' +
         '<span class="rank-score">' + nf.format(e[1]) + '</span></li>';
     }).join('');
@@ -2000,23 +2233,23 @@ td input[type=date]{padding:4px 8px}
       var tot = e[1] + e[2];
       if (tot !== prev){ rank = i + 1; prev = tot; }
       var hl = rank === 1 && tot > 0;
-      var pill = tot > 0 && rank <= 2 ? '<span class="rank-pill' + (rank === 2 ? ' second' : '') + '">' + ordinal(rank) + '</span>' : '';
       var pa = tot ? Math.round(e[1] / tot * 100) : 0;
       return '<li class="rank-row' + (hl ? ' hl' : '') + '">' +
         '<span class="rank-n">' + rank + '</span>' +
         '<span class="avatar" aria-hidden="true">' + esc(initials(e[0])) + '</span>' +
-        '<span class="rank-name" title="' + esc(e[0]) + '">' + esc(e[0]) + pill + '</span>' +
+        '<span class="rank-name" title="' + esc(e[0]) + '">' + esc(e[0]) + '</span>' +
         '<span class="track" title="' + plural(e[1], 'affectation', 'affectations') + ' + ' + plural(e[2], 'ticket pris', 'tickets pris') + '">' +
           '<span class="fill split" data-v="' + tot + '" data-max="' + max + '"><span class="seg aff" style="width:' + pa + '%"></span><span class="seg self" style="width:' + (100 - pa) + '%"></span></span></span>' +
         '<span class="rank-score">' + nf.format(tot) + '<small>' + e[1] + ' + ' + e[2] + '</small></span></li>';
     }).join('');
   }
-  // Cellule du tableau annuel : affectations · tickets pris
-  function pairCell(a, t, cls){
-    var c = [cls || '', a || t ? '' : 'zero'].join(' ').trim();
-    return '<td' + (c ? ' class="' + c + '"' : '') + '>' + (a || t
-      ? '<span class="n-aff">' + (a ? nf.format(a) : '0') + '</span><span class="n-sep">·</span><span class="n-self">' + (t ? nf.format(t) : '0') + '</span>'
-      : '–') + '</td>';
+  // Cellule du tableau annuel : total en gros, affectés + pris en dessous ; max sert à l'intensité du fond
+  function pairCell(a, t, cls, max){
+    var tot = a + t, c = ['yc', cls || '', tot ? '' : 'zero'].join(' ').trim();
+    var h = max && tot ? ' style="--h:' + (tot / max).toFixed(2) + '"' : '';
+    return '<td class="' + c + '"' + h + (tot ? ' title="' + plural(a, 'affecté', 'affectés') + ' + ' + plural(t, 'pris', 'pris') + '"' : '') + '>' + (tot
+      ? '<b>' + nf.format(tot) + '</b><small><span class="n-aff">' + nf.format(a) + '</span> + <span class="n-self">' + nf.format(t) + '</span></small>'
+      : '·') + '</td>';
   }
   function summaryCard(title, total, sorted, label){
     var withData = sorted.filter(function(e){ return e[1] > 0; });
@@ -2035,41 +2268,52 @@ td input[type=date]{padding:4px 8px}
     }
     return html;
   }
+  // Les trois volets (affectés, pris, total) d'une période ; pick(tableau des 12 mois) = nombre sur la période
+  function renderTriple(prefix, names, mx, tx, pick){
+    var zero = [0,0,0,0,0,0,0,0,0,0,0,0], aff = {}, self = {}, totA = 0, totT = 0;
+    var split = names.map(function(p){
+      var a = pick(mx[p] || zero), t = pick(tx[p] || zero);
+      aff[p] = a; self[p] = t; totA += a; totT += t;
+      return [p, a, t];
+    }).sort(function(a, b){ return (b[1] + b[2]) - (a[1] + a[2]) || a[0].localeCompare(b[0], 'fr'); });
+    $(prefix + 'Aff').innerHTML = rankingHTML(sortCounts(aff));
+    $(prefix + 'Self').innerHTML = rankingHTML(sortCounts(self));
+    $(prefix + 'Tot').innerHTML = rankingSplitHTML(split);
+    $(prefix + 'AffTag').textContent = nf.format(totA);
+    $(prefix + 'SelfTag').textContent = nf.format(totT);
+    $(prefix + 'TotTag').textContent = nf.format(totA + totT);
+  }
   function renderStats(){
     var mx = yearMatrix(period.y), people = Object.keys(mx);
-    var month = {}, year = {}, monthTotal = 0, yearTotal = 0;
-    people.forEach(function(p){
-      month[p] = mx[p][period.m];
-      year[p] = mx[p].reduce(function(a, b){ return a + b; }, 0);
-      monthTotal += month[p]; yearTotal += year[p];
-    });
-    var ms = sortCounts(month);
     $('monthTag').textContent = MONTHS[period.m] + ' ' + period.y;
     $('yearTag').textContent = String(period.y);
-    $('monthRanking').innerHTML = rankingHTML(ms);
+    $('detailTag').textContent = String(period.y);
 
-    // Affectations + tickets pris par les consultants
+    // Affectations (date d'affectation) + tickets pris par les consultants
     var tx = takenMatrix(period.y), zero = [0,0,0,0,0,0,0,0,0,0,0,0];
     var names = people.slice();
     Object.keys(tx).forEach(function(p){ if (names.indexOf(p) < 0) names.push(p); });
     var sumOf = function(arr){ return (arr || zero).reduce(function(a, b){ return a + b; }, 0); };
-    var monthSplit = names.map(function(p){ return [p, (mx[p] || zero)[period.m], (tx[p] || zero)[period.m]]; })
-      .sort(function(a, b){ return (b[1] + b[2]) - (a[1] + a[2]) || a[0].localeCompare(b[0], 'fr'); });
-    $('monthRanking2').innerHTML = rankingSplitHTML(monthSplit);
+    renderTriple('month', names, mx, tx, function(arr){ return arr[period.m]; });
+    renderTriple('year', names, mx, tx, sumOf);
 
     // Tableau annuel personne × mois : affectations · tickets pris
     var colA = zero.slice(), colT = zero.slice(), totA = 0, totT = 0;
     var yearRows = names.map(function(p){ return [p, sumOf(mx[p]), sumOf(tx[p])]; })
       .sort(function(a, b){ return (b[1] + b[2]) - (a[1] + a[2]) || a[0].localeCompare(b[0], 'fr'); });
-    var topTotal = yearRows.length ? yearRows[0][1] + yearRows[0][2] : 0;
+    var maxCell = 0;
+    yearRows.forEach(function(e){
+      var a = mx[e[0]] || zero, t = tx[e[0]] || zero;
+      a.forEach(function(v, i){ maxCell = Math.max(maxCell, v + t[i]); });
+    });
     var th = '<thead><tr><th>Personne</th>' + MONTHS_SHORT.map(function(m, i){
       return '<th' + (i === period.m ? ' class="cur"' : '') + '>' + m + '</th>';
     }).join('') + '<th class="total">Total</th></tr></thead>';
     var body = yearRows.map(function(e){
       var p = e[0], a = mx[p] || zero, t = tx[p] || zero;
       totA += e[1]; totT += e[2];
-      return '<tr><td>' + esc(p) + (topTotal > 0 && e[1] + e[2] === topTotal ? '<span class="rank-pill">' + ordinal(1) + '</span>' : '') + '</td>' +
-        a.map(function(v, i){ colA[i] += v; colT[i] += t[i]; return pairCell(v, t[i], i === period.m ? 'cur' : ''); }).join('') +
+      return '<tr><td>' + esc(p) + '</td>' +
+        a.map(function(v, i){ colA[i] += v; colT[i] += t[i]; return pairCell(v, t[i], i === period.m ? 'cur' : '', maxCell); }).join('') +
         pairCell(e[1], e[2], 'total') + '</tr>';
     }).join('');
     var foot = yearRows.length ? '<tfoot><tr><td>Total</td>' + colA.map(function(v, i){
@@ -2103,10 +2347,17 @@ td input[type=date]{padding:4px 8px}
     for (var j = 0; j < header.length; j++) if (used.indexOf(j) < 0 && re.test(norm(header[j]))) return j;
     return -1;
   }
+  // Ordre attendu des colonnes ; sert d'en-têtes si le collage n'en a pas, et de choix par défaut
+  var TAKEN_ORDER = ['ID', 'Date de prise en charge', 'Pôle', 'Sujet', 'Demandeur', 'Organisation', 'Assigné'];
+  var TAKEN_POS = { id: 0, date: 1, label: 3, person: 6 };
   function buildTaken(){
     var rows = parseTSV($('takenPaste').value);
     if (!rows.length){ tk = null; renderTaken(); return; }
-    var header = rows[0].map(function(h, j){ return h.trim() || 'Colonne ' + (j + 1); });
+    // Sans ligne d'en-têtes (2e colonne déjà une date) : on applique l'ordre attendu
+    var hasHeader = !parseDate(rows[0][1]);
+    var header = (hasHeader ? rows[0] : rows[0].map(function(){ return ''; })).map(function(h, j){
+      return h.trim() || TAKEN_ORDER[j] || 'Colonne ' + (j + 1);
+    });
     var map = tk && tk.header.join('\t') === header.join('\t') ? tk.map : null;
     if (!map){
       var used = [], idName = norm(state.columns[0] || '');
@@ -2115,17 +2366,22 @@ td input[type=date]{padding:4px 8px}
       if (map.id < 0) map.id = guessCol(header, /ticket|numero|^n°|^no\b|^id\b|reference|incident/, used);
       if (map.id < 0) map.id = 0;
       used.push(map.id);
-      map.person = guessCol(header, /affect|attribu|assign|technicien|consultant|responsable|agent|intervenant|proprietaire|owner/, used); used.push(map.person);
-      map.date = guessCol(header, /^cree|creat|^date|ouvert|^pris|prise/, used); used.push(map.date);
+      // La date d'abord : un en-tête comme « Date d'affectation » ne doit pas être pris pour le consultant
+      map.date = guessCol(header, /^date|affect|^cree|creat|ouvert|^pris|prise/, used); used.push(map.date);
+      map.person = guessCol(header, /assign|attribu|technicien|consultant|responsable|agent|intervenant|proprietaire|owner/, used); used.push(map.person);
       map.label = guessCol(header, /sujet|titre|objet|resume|libelle|description/, used);
+      // Colonnes non reconnues : position de l'ordre attendu
+      Object.keys(TAKEN_POS).forEach(function(k){
+        if (map[k] < 0 && TAKEN_POS[k] < header.length && used.indexOf(TAKEN_POS[k]) < 0){ map[k] = TAKEN_POS[k]; used.push(map[k]); }
+      });
     }
-    tk = { header: header, rows: rows.slice(1), map: map };
+    tk = { header: header, rows: hasHeader ? rows.slice(1) : rows, map: map };
     renderTaken();
   }
   function analyzeTaken(){
     var m = tk.map, errors = [], warns = [], counts = { 'new': 0, upd: 0, skip: 0 }, seen = {}, unknown = {};
     if (m.person < 0) errors.push('Choisissez la colonne du consultant.');
-    if (m.date < 0) errors.push('Choisissez la colonne de date.');
+    if (m.date < 0) errors.push('Choisissez la colonne de date de prise en charge.');
     var known = {}, team = {};
     state.taken.forEach(function(t){ known[t.id] = t; });
     allTickets().forEach(function(t){ var k = (t.cells[0] || '').trim(); if (k && t.assignee) team[k] = t; });
@@ -2142,7 +2398,7 @@ td input[type=date]{padding:4px 8px}
       else if (known[id]){ status = 'upd'; note = 'déjà importé : mis à jour'; }
       if (id) seen[id] = true;
       counts[status]++;
-      return { id: id, raw: raw, person: person, day: d ? isoDay(d) : '', label: label, status: status, note: note };
+      return { id: id, raw: raw, person: person, day: d ? isoDay(d) : '', label: label, status: status, note: note, cells: r };
     });
     var unk = Object.keys(unknown);
     if (unk.length) warns.push('Consultants non reconnus : ' + unk.map(function(u){ return '« ' + esc(u) + ' »'; }).join(', ') +
@@ -2160,7 +2416,7 @@ td input[type=date]{padding:4px 8px}
     if (!tk){ box.hidden = true; return; }
     box.hidden = false;
     var a = analyzeTaken(), m = tk.map;
-    var fields = [['id', 'Identifiant', false], ['person', 'Consultant', false], ['date', 'Date', false], ['label', 'Sujet', true]];
+    var fields = [['id', 'Identifiant', false], ['person', 'Consultant', false], ['date', 'Date de prise en charge', false], ['label', 'Sujet', true]];
     $('takenMap').innerHTML = fields.map(function(f){
       return '<label>' + f[1] + '<select data-field="' + f[0] + '">' +
         (f[2] || f[0] !== 'id' ? '<option value="-1">' + (f[2] ? '— Aucune —' : '— Choisir —') + '</option>' : '') +
@@ -2171,15 +2427,27 @@ td input[type=date]{padding:4px 8px}
       a.errors.map(function(t){ return '<li class="issue err"><strong>À corriger :</strong> ' + t + '</li>'; }).join('') +
       a.warns.map(function(t){ return '<li class="issue warn">' + t + '</li>'; }).join('');
     var labels = { 'new': 'Nouveau', upd: 'Mise à jour', skip: 'Ignorée' };
-    $('takenTable').innerHTML = '<thead><tr><th>Statut</th><th>Identifiant</th><th>Consultant</th><th>Date</th><th>Sujet</th></tr></thead><tbody>' +
-      a.rows.slice(0, PREVIEW_LIMIT).map(function(r){
+    // Toutes les colonnes collées, dans l'ordre du collage ; celles utilisées par l'import sont signalées et interprétées
+    var role = {};
+    fields.forEach(function(f){ if (m[f[0]] >= 0) role[m[f[0]]] = f[0]; });
+    var names = { id: 'Identifiant', person: 'Consultant', date: 'Prise en charge', label: 'Sujet' };
+    function cell(r, j){
+      var v = (r.cells[j] || '').trim();
+      switch (role[j]){
+        case 'id': return '<td>' + esc(r.id) + '</td>';
+        case 'person': return '<td>' + (r.person ? '<strong>' + esc(r.person) + '</strong>' + (norm(r.raw) !== norm(r.person) ? ' <span class="muted-text">(' + esc(r.raw) + ')</span>' : '') : esc(r.raw)) + '</td>';
+        case 'date': return '<td>' + (r.day ? fmtDay(r.day) : esc(v)) + '</td>';
+        case 'label': return '<td class="c-long"><div class="clamp">' + esc(r.label) + '</div></td>';
+        default: return '<td class="c-extra" title="' + esc(v) + '">' + esc(v) + '</td>';
+      }
+    }
+    $('takenTable').innerHTML = '<thead><tr><th>Statut</th>' +
+      tk.header.map(function(h, j){ return '<th>' + esc(h) + (role[j] ? ' <span class="key-tag">' + names[role[j]] + '</span>' : '') + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      a.rows.map(function(r){
         return '<tr' + (r.status === 'skip' ? ' class="r-skip"' : '') + '><td><span class="st ' + r.status + '">' + labels[r.status] + '</span>' +
           (r.note ? '<span class="st-note">' + esc(r.note) + '</span>' : '') + '</td>' +
-          '<td>' + esc(r.id) + '</td><td>' + (r.person ? '<strong>' + esc(r.person) + '</strong>' + (norm(r.raw) !== norm(r.person) ? ' <span class="muted-text">(' + esc(r.raw) + ')</span>' : '') : esc(r.raw)) + '</td>' +
-          '<td>' + (r.day ? fmtDay(r.day) : '') + '</td><td class="c-long"><div class="clamp">' + esc(r.label) + '</div></td></tr>';
+          tk.header.map(function(h, j){ return cell(r, j); }).join('') + '</tr>';
       }).join('') + '</tbody>';
-    var more = a.rows.length - PREVIEW_LIMIT;
-    $('takenMore').textContent = more > 0 ? '… et ' + plural(more, 'autre ligne', 'autres lignes') + ', traitées selon les mêmes règles.' : '';
     var total = a.counts['new'] + a.counts.upd, btn = $('takenImport');
     btn.disabled = !takenAvailable || a.errors.length > 0 || total === 0;
     btn.textContent = total ? 'Importer ' + plural(total, 'ticket pris', 'tickets pris') : 'Importer';
@@ -2201,18 +2469,18 @@ td input[type=date]{padding:4px 8px}
   $('takenImport').addEventListener('click', function(){
     if (!tk) return;
     var a = analyzeTaken(); if (a.errors.length) return;
-    var n = 0;
+    var n = 0, at = new Date().toISOString(); // même horodatage pour tout l'import : c'est sa « session »
     a.rows.forEach(function(r){
       if (r.status === 'skip') return;
       var ex = state.taken.filter(function(t){ return t.id === r.id; })[0];
       if (ex){ ex.person = r.person; ex.takenOn = r.day; if (r.label) ex.label = r.label; }
-      else state.taken.push({ id: r.id, person: r.person, takenOn: r.day, label: r.label });
+      else state.taken.push({ id: r.id, person: r.person, takenOn: r.day, label: r.label, importedAt: at });
       n++;
     });
     takenUndo = save();
     audit('tickets_pris_importes', { tickets: n });
     $('takenPaste').value = ''; tk = null;
-    renderTaken(); renderStats();
+    renderTaken(); renderStats(); renderArchive();
     $('takenMsg').innerHTML = '<strong>' + plural(n, 'ticket pris importé', 'tickets pris importés') + '.</strong> ' +
       '<button type="button" class="link-btn" id="takenUndoBtn">Annuler cet import</button>';
   });
@@ -2220,7 +2488,7 @@ td input[type=date]{padding:4px 8px}
     if (e.target.id !== 'takenUndoBtn' || !takenUndo) return;
     applyInverse(takenUndo); takenUndo = null;
     save(); audit('annulation', { operation: 'cet import de tickets pris' });
-    renderTaken(); renderStats();
+    renderTaken(); renderStats(); renderArchive();
     $('takenMsg').innerHTML = '<strong>Import annulé.</strong>';
   });
 
@@ -2288,7 +2556,7 @@ td input[type=date]{padding:4px 8px}
     return t;
   }
   function takenRow(t){ return { id: t.id, person: t.person, taken_on: t.takenOn, label: t.label || null }; }
-  function takenFromRow(r){ return { id: r.id, person: r.person, takenOn: r.taken_on, label: r.label || '' }; }
+  function takenFromRow(r){ return { id: r.id, person: r.person, takenOn: r.taken_on, label: r.label || '', importedAt: r.created_at || '' }; }
   function dropTicket(id){
     state.tickets = state.tickets.filter(function(t){ return t.id !== id; });
     state.archive = state.archive.filter(function(t){ return t.id !== id; });
@@ -2496,7 +2764,7 @@ td input[type=date]{padding:4px 8px}
     'import': 'Import', tickets_pris_importes: 'Tickets pris importés', session_validee: 'Session validée', session_supprimee: 'Session supprimée',
     modele_modifie: 'Modèle de colonnes modifié', tickets_vides: 'Tickets vidés', sauvegarde_restauree: 'Sauvegarde restaurée',
     donnees_locales_envoyees: 'Données de l\'ancienne version envoyées', annulation: 'Annulation',
-    ticket_supprime: 'Ticket supprimé', ticket_desarchive: 'Ticket remis en session',
+    ticket_supprime: 'Ticket supprimé', ticket_desarchive: 'Ticket remis en session', ticket_ajoute: 'Ticket ajouté',
     personne_ajoutee: 'Personne ajoutée', personne_retiree: 'Personne retirée'
   };
   function auditText(a, d){
@@ -2511,7 +2779,7 @@ td input[type=date]{padding:4px 8px}
       case 'sauvegarde_restauree': case 'donnees_locales_envoyees':
         return plural(d.tickets || 0, 'ticket en cours', 'tickets en cours') + ', ' + plural(d.archives || 0, 'archivé', 'archivés');
       case 'annulation': return d.operation || '';
-      case 'ticket_supprime': case 'ticket_desarchive': return d.ticket || '';
+      case 'ticket_supprime': case 'ticket_desarchive': case 'ticket_ajoute': return d.ticket || '';
       case 'personne_ajoutee': case 'personne_retiree': return d.nom || '';
       default: return '';
     }
