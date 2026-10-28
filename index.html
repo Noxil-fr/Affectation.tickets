@@ -47,6 +47,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 header{padding:48px 0 28px}
 .eyebrow{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:0 0 8px}
 h1{font-size:clamp(26px,4vw,34px);font-weight:600;letter-spacing:-.01em;margin:0 0 10px;line-height:1.2}
+.version-tag{display:inline-block;vertical-align:middle;margin-left:8px;padding:3px 10px;border-radius:999px;background:var(--surface-2);color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.02em}
 .lede{font-size:15px;color:var(--muted);max-width:640px;margin:0}
 h2{font-size:20px;font-weight:600;margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 h3{font-size:14px;font-weight:600;color:var(--muted);margin:0 0 12px}
@@ -263,6 +264,13 @@ td.c-long{white-space:normal}
 .modal-num{font-size:24px;font-weight:600;color:var(--accent);line-height:1.2}
 .modal-num.gold{color:var(--gold)}
 .modal-num.muted{color:var(--muted)}
+.modal-num.danger{color:var(--danger)}
+.modal-item{display:grid;gap:2px;background:var(--surface-2);border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:var(--muted)}
+.modal-item strong{font-size:14.5px;font-weight:600;color:var(--text);overflow-wrap:anywhere}
+.modal-item span{overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.modal-note strong{color:var(--text);font-weight:600}
+.btn.danger.modal-danger,.modal-actions .btn.danger{background:var(--danger);border-color:var(--danger);color:#fff}
+.modal-actions .btn.danger:hover{filter:brightness(1.08)}
 .modal-kicker{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px}
 .modal-split{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:6px;max-height:240px;overflow-y:auto}
 .modal-split li{display:grid;grid-template-columns:24px minmax(70px,130px) 1fr 28px;align-items:center;gap:10px;font-size:13.5px}
@@ -511,7 +519,7 @@ td input[type=date]{padding:4px 8px}
 <div class="wrap">
   <header>
     <p class="eyebrow">Suivi des tickets</p>
-    <h1>Affectation des tickets</h1>
+    <h1>Affectation des tickets <span class="version-tag" title="Version du site">v1.0</span></h1>
     <p class="lede">Collez vos tickets depuis Excel, affectez-les à une personne, puis suivez la répartition des affectations sur le mois et sur l'année.</p>
   </header>
 
@@ -836,7 +844,11 @@ td input[type=date]{padding:4px 8px}
     if (e.target.classList.contains('model-name')){
       var v = e.target.value.trim();
       var taken = state.columns.some(function(c, k){ return k !== i && norm(c) === norm(v); });
-      if (!v || taken){ e.target.value = state.columns[i]; alert(v ? 'Une colonne porte déjà ce nom.' : 'Le nom ne peut pas être vide.'); return; }
+      if (!v || taken){
+        e.target.value = state.columns[i];
+        notice(v ? 'Nom déjà utilisé' : 'Nom manquant', v ? 'Une autre colonne porte déjà le nom « ' + esc(v) + ' ».' : 'Le nom d\'une colonne ne peut pas être vide.');
+        return;
+      }
       state.columns[i] = v; afterModelChange();
     }
   });
@@ -844,7 +856,7 @@ td input[type=date]{padding:4px 8px}
     e.preventDefault();
     var v = $('colInput').value.trim();
     if (!v) return;
-    if (state.columns.some(function(c){ return norm(c) === norm(v); })){ alert('Une colonne porte déjà ce nom.'); return; }
+    if (state.columns.some(function(c){ return norm(c) === norm(v); })){ notice('Nom déjà utilisé', 'Une colonne porte déjà le nom « ' + esc(v) + ' ».'); return; }
     state.columns.push(v); state.required.push(state.columns.length === 1);
     allTickets().forEach(function(t){ t.cells.push(''); });
     $('colInput').value = '';
@@ -1072,12 +1084,19 @@ td input[type=date]{padding:4px 8px}
     if (e.target.id !== 'undoBtn') return;
     var u = loadUndo(); if (!u || !u.inverse) return;
     var labels = UNDO_LABELS[u.kind];
-    if (!confirm('Annuler ' + labels[1] + ' ?\n\nLes éléments concernés reviennent à leur état d\'avant l\'opération.')) return;
-    applyInverse(u.inverse);
-    save(); clearUndo();
-    audit('annulation', { operation: labels[1] });
-    renderAll();
-    $('tableMsg').innerHTML = '<strong>' + labels[2] + '</strong>';
+    askConfirm({
+      title: 'Annuler ' + labels[1] + ' ?',
+      html: modalItem(u.text.replace(/<[^>]+>/g, '').replace('{date}', fmtDateTime(u.at))) +
+        '<p class="modal-note">Les éléments concernés reviennent à leur état d\'avant l\'opération. Les autres modifications sont conservées.</p>',
+      confirmLabel: labels[0], cancelLabel: 'Ne rien changer', tone: 'primary'
+    }).then(function(ok){
+      if (!ok) return;
+      applyInverse(u.inverse);
+      save(); clearUndo();
+      audit('annulation', { operation: labels[1] });
+      renderAll();
+      $('tableMsg').innerHTML = '<strong>' + labels[2] + '</strong>';
+    });
   });
 
   /* ---------- Dates ---------- */
@@ -1198,8 +1217,17 @@ td input[type=date]{padding:4px 8px}
     var b = e.target.closest('button[data-i]'); if (!b) return;
     var name = state.people[+b.dataset.i];
     var n = allTickets().filter(function(t){ return t.assignee === name; }).length;
-    if (n && !confirm(name + ' a ' + plural(n, 'ticket affecté', 'tickets affectés') + '. Les affectations existantes seront conservées dans les statistiques. Retirer cette personne de la liste ?')) return;
-    state.people.splice(+b.dataset.i, 1); save(); audit('personne_retiree', { nom: name }); renderAll();
+    function remove(){
+      var i = state.people.indexOf(name); if (i < 0) return;
+      state.people.splice(i, 1); save(); audit('personne_retiree', { nom: name }); renderAll();
+    }
+    if (!n){ remove(); return; }
+    askConfirm({
+      title: 'Retirer ' + name + ' de la liste ?',
+      html: modalItem(name, plural(n, 'ticket affecté', 'tickets affectés')) +
+        '<p class="modal-note">' + esc(name) + ' ne sera plus proposé(e) dans le menu d\'affectation. Ses affectations existantes restent dans les archives et les statistiques.</p>',
+      confirmLabel: 'Retirer', tone: 'danger'
+    }).then(function(ok){ if (ok) remove(); });
   });
 
 
@@ -1445,8 +1473,17 @@ td input[type=date]{padding:4px 8px}
   tbody.addEventListener('click', function(e){
     if (!e.target.classList.contains('del')) return;
     var f = findTicket(e.target); if (!f) return;
-    if (!confirm('Supprimer le ticket « ' + (f.t.cells[0] || 'sans identifiant') + ' » de la session en cours ?')) return;
-    state.tickets.splice(f.i, 1); save(); audit('ticket_supprime', { ticket: f.t.cells[0] }); renderTickets(); renderStats(); renderBanner();
+    var t = f.t, subject = state.columns.map(function(c, i){ return /^sujet/.test(norm(c)) ? t.cells[i] : ''; }).filter(Boolean)[0];
+    askConfirm({
+      title: 'Supprimer ce ticket ?',
+      html: modalItem(t.cells[0] || 'Sans identifiant', subject || (t.assignee ? 'Affecté à ' + t.assignee : 'Non affecté')) +
+        '<p class="modal-note">Le ticket est retiré de la session en cours. S\'il revient dans un prochain import, il sera de nouveau ajouté.</p>',
+      confirmLabel: 'Supprimer', tone: 'danger'
+    }).then(function(ok){
+      if (!ok) return;
+      var i = state.tickets.indexOf(t); if (i < 0) return;
+      state.tickets.splice(i, 1); save(); audit('ticket_supprime', { ticket: t.cells[0] }); renderTickets(); renderStats(); renderBanner();
+    });
   });
   ['search', 'onlyUnassigned'].forEach(function(id){
     $(id).addEventListener(id === 'search' ? 'input' : 'change', renderTickets);
@@ -1532,6 +1569,14 @@ td input[type=date]{padding:4px 8px}
     $('modalOverlay').hidden = true;
     if (modalReturnFocus && document.body.contains(modalReturnFocus)) modalReturnFocus.focus();
     r(ok);
+  }
+  // Message d'information (un seul bouton)
+  function notice(title, text){
+    return askConfirm({ title: title, html: '<p class="modal-note">' + text + '</p>', confirmLabel: 'OK', cancelLabel: false });
+  }
+  // Encadré qui rappelle l'élément concerné (ticket, session, personne)
+  function modalItem(main, sub){
+    return '<div class="modal-item"><strong>' + esc(main) + '</strong>' + (sub ? '<span>' + esc(sub) + '</span>' : '') + '</div>';
   }
   $('modalOk').addEventListener('click', function(){ closeModal(true); });
   $('modalCancel').addEventListener('click', function(){ closeModal(false); });
@@ -1708,12 +1753,19 @@ td input[type=date]{padding:4px 8px}
     var b = e.target.closest('[data-session]'); if (!b || !isAdmin()) return;
     var id = b.dataset.session, label = sessionLabel(id);
     var n = state.archive.filter(function(t){ return t.sessionId === id; }).length;
-    if (!confirm('Supprimer la session du ' + label + ' ?\n\n' + plural(n, 'ticket archivé sera supprimé', 'tickets archivés seront supprimés') + ' et ne ' + (n > 1 ? 'seront' : 'sera') + ' plus comptabilisé' + (n > 1 ? 's' : '') + ' dans les statistiques.')) return;
-    state.archive = state.archive.filter(function(t){ return t.sessionId !== id; });
-    state.sessions = state.sessions.filter(function(s){ return s.id !== id; });
-    var inv = save();
-    saveUndo(inv, 'delete-session', 'Session du ' + label + ' supprimée le {date} : <strong>' + plural(n, 'ticket retiré', 'tickets retirés') + '</strong> des archives.');
-    renderAll();
+    askConfirm({
+      title: 'Supprimer cette session ?',
+      html: modalItem('Session du ' + label, plural(n, 'ticket archivé', 'tickets archivés')) +
+        '<p class="modal-note">Ses tickets sont retirés des archives et ne sont plus comptabilisés dans les statistiques. Vous pourrez annuler juste après depuis l\'onglet Tickets.</p>',
+      confirmLabel: 'Supprimer la session', tone: 'danger'
+    }).then(function(ok){
+      if (!ok) return;
+      state.archive = state.archive.filter(function(t){ return t.sessionId !== id; });
+      state.sessions = state.sessions.filter(function(s){ return s.id !== id; });
+      var inv = save();
+      saveUndo(inv, 'delete-session', 'Session du ' + label + ' supprimée le {date} : <strong>' + plural(n, 'ticket retiré', 'tickets retirés') + '</strong> des archives.');
+      renderAll();
+    });
   });
 
   /* ---------- Archives ---------- */
@@ -1813,13 +1865,24 @@ td input[type=date]{padding:4px 8px}
     var id = e.target.closest('tr[data-id]').dataset.id, i;
     for (i = 0; i < state.archive.length; i++) if (state.archive[i].id === id) break;
     var t = state.archive[i]; if (!t) return;
-    if (ticketsByKey()[(t.cells[0] || '').trim()]){ alert('Un ticket avec le même identifiant est déjà dans la session en cours.'); return; }
-    if (!confirm('Remettre le ticket « ' + t.cells[0] + ' » dans la session en cours ? Il ne sera plus archivé.')) return;
-    state.archive.splice(i, 1);
-    delete t.sessionId; delete t.archivedAt;
-    state.tickets.push(t);
-    save(); audit('ticket_desarchive', { ticket: t.cells[0] }); renderAll();
-    $('arMsg').innerHTML = '<strong>Ticket remis dans la session en cours.</strong>';
+    if (ticketsByKey()[(t.cells[0] || '').trim()]){
+      notice('Ticket déjà présent', 'Le ticket « ' + esc(t.cells[0]) + ' » est déjà dans la session en cours.');
+      return;
+    }
+    askConfirm({
+      title: 'Remettre ce ticket dans la session ?',
+      html: modalItem(t.cells[0] || 'Sans identifiant', 'Affecté à ' + (t.assignee || '?') + ' · session du ' + sessionLabel(t.sessionId)) +
+        '<p class="modal-note">Le ticket quitte les archives et revient dans la session en cours, avec son affectation.</p>',
+      confirmLabel: 'Remettre dans la session', tone: 'primary'
+    }).then(function(ok){
+      if (!ok) return;
+      var k = state.archive.indexOf(t); if (k < 0) return;
+      state.archive.splice(k, 1);
+      delete t.sessionId; delete t.archivedAt;
+      state.tickets.push(t);
+      save(); audit('ticket_desarchive', { ticket: t.cells[0] }); renderAll();
+      $('arMsg').innerHTML = '<strong>Ticket remis dans la session en cours.</strong>';
+    });
   });
   $('exportBtn').addEventListener('click', function(){
     var blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
@@ -1831,9 +1894,19 @@ td input[type=date]{padding:4px 8px}
   });
   $('clearBtn').addEventListener('click', function(){
     if (!state.tickets.length || !isAdmin()) return;
-    if (!confirm('Supprimer les ' + state.tickets.length + ' tickets et leurs affectations ? La liste des personnes et le modèle de colonnes sont conservés.')) return;
-    var n = state.tickets.length;
-    state.tickets = []; save(); clearUndo(); audit('tickets_vides', { tickets: n }); renderAll(); if (pv) buildPreview();
+    var n = state.tickets.length, assigned = state.tickets.filter(function(t){ return t.assignee; }).length;
+    askConfirm({
+      title: 'Vider la session en cours ?',
+      html: '<div class="modal-stats">' +
+          '<div><span class="modal-num danger">' + n + '</span><span>' + (n > 1 ? 'tickets supprimés' : 'ticket supprimé') + '</span></div>' +
+          '<div><span class="modal-num' + (assigned ? ' gold' : ' muted') + '">' + assigned + '</span><span>' + (assigned > 1 ? 'affectations perdues' : 'affectation perdue') + '</span></div>' +
+        '</div>' +
+        '<p class="modal-note">Les tickets de la session sont supprimés sans être archivés. Les archives, la liste des personnes et le modèle de colonnes sont conservés. <strong>Cette action ne peut pas être annulée.</strong></p>',
+      confirmLabel: 'Vider les tickets', tone: 'danger'
+    }).then(function(ok){
+      if (!ok) return;
+      state.tickets = []; save(); clearUndo(); audit('tickets_vides', { tickets: n }); renderAll(); if (pv) buildPreview();
+    });
   });
 
   /* ---------- Rendu : statistiques ---------- */
@@ -2206,12 +2279,22 @@ td input[type=date]{padding:4px 8px}
   $('legacyBtn').addEventListener('click', function(){
     var s = legacyData(); if (!s || !isAdmin()) return;
     var empty = !state.columns.length && !allTickets().length && !state.sessions.length;
-    if (!confirm(empty ? 'Envoyer les données de ce navigateur dans la base partagée ?'
-      : 'La base contient déjà des données : elles seront remplacées, pour tous les utilisateurs, par celles de ce navigateur. Continuer ?')) return;
-    replaceAll(s, 'donnees_locales_envoyees');
-    try { localStorage.setItem(LEGACY_KEY + '-envoye', localStorage.getItem(LEGACY_KEY)); localStorage.removeItem(LEGACY_KEY); } catch(e){}
-    renderLegacy();
-    $('tableMsg').innerHTML = '<strong>Données de l\'ancienne version envoyées dans la base.</strong>';
+    askConfirm({
+      title: 'Envoyer les données de ce navigateur ?',
+      html: '<div class="modal-stats">' +
+          '<div><span class="modal-num">' + s.tickets.length + '</span><span>tickets en cours</span></div>' +
+          '<div><span class="modal-num">' + (s.archive || []).length + '</span><span>tickets archivés</span></div>' +
+        '</div>' +
+        '<p class="modal-note">' + (empty ? 'Ces données seront envoyées dans la base partagée.'
+          : '<strong>La base contient déjà des données : elles seront remplacées, pour tous les utilisateurs, par celles de ce navigateur.</strong>') + '</p>',
+      confirmLabel: empty ? 'Envoyer' : 'Remplacer la base', tone: empty ? 'primary' : 'danger'
+    }).then(function(ok){
+      if (!ok) return;
+      replaceAll(s, 'donnees_locales_envoyees');
+      try { localStorage.setItem(LEGACY_KEY + '-envoye', localStorage.getItem(LEGACY_KEY)); localStorage.removeItem(LEGACY_KEY); } catch(e){}
+      renderLegacy();
+      $('tableMsg').innerHTML = '<strong>Données de l\'ancienne version envoyées dans la base.</strong>';
+    });
   });
 
   /* ---------- Connexion ---------- */
