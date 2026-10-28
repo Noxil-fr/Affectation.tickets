@@ -13,7 +13,7 @@ Page web pour importer des tickets depuis Excel, les affecter à une personne, v
 | Importer, affecter, valider une session | ✓ | ✓ |
 | Annuler son dernier import ou sa dernière validation | ✓ | ✓ |
 | Supprimer une session, vider les tickets | | ✓ |
-| Modifier le modèle de colonnes, restaurer une sauvegarde | | ✓ |
+| Modifier le modèle de colonnes | | ✓ |
 
 Les actions importantes sont inscrites dans le **journal** (roue crantée en haut à droite) avec l'auteur et l'heure. Le journal ne peut être ni modifié ni effacé depuis l'application.
 

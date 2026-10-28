@@ -40,7 +40,7 @@ body{
   font-family:Inter,system-ui,"Segoe UI",sans-serif;font-size:15px;line-height:1.5;
   font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased;
 }
-.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+.wrap{max-width:1188px;margin:0 auto;padding:0 16px}
 button,input,select,textarea{font:inherit;color:inherit}
 
 /* En-tête */
@@ -179,6 +179,15 @@ textarea{width:100%;min-height:130px;resize:vertical;font-size:13px;font-family:
 .check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--muted);cursor:pointer}
 .msg{font-size:14px;color:var(--muted);min-height:21px;margin:10px 0 0}
 .msg strong{color:var(--text);font-weight:600}
+#tableMsg:empty,#undoBar:empty,#arMsg:empty{display:none}
+.validate-stack{display:inline-flex;flex-direction:column;align-items:stretch;gap:6px}
+.mail-btn{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);font-size:13px;padding:6px 12px}
+.mail-btn:hover{background:var(--accent);color:#fff}
+.mail-btn[hidden]{display:none}
+.mail-form{display:grid;gap:10px}
+.mail-form label{display:grid;gap:4px;font-size:12.5px;font-weight:500;color:var(--muted)}
+.mail-form input,.mail-form textarea{font-size:13px;padding:6px 9px;font-family:inherit;min-height:0}
+.session-actions{display:inline-flex;gap:6px;flex:none}
 
 /* Personnes */
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;padding:0;list-style:none}
@@ -190,23 +199,101 @@ textarea{width:100%;min-height:130px;resize:vertical;font-size:13px;font-family:
 .chip{font-size:12.5px;padding:2px 4px 2px 10px;gap:4px}
 .chip button{width:18px;height:18px;font-size:13px}
 .chips .empty{font-size:12.5px}
-#personForm input,#personForm .btn,#dateCol{font-size:12.5px;padding:5px 8px}
+#personForm input,#personForm .btn{font-size:12.5px;padding:5px 8px}
 
 /* Tableau des tickets */
 .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;margin-top:14px;background:var(--surface);box-shadow:var(--shadow)}
 #arTable{font-size:12.5px}
-#arTable th,#arTable td{padding:6px 8px}
+
 #arTable th{font-size:11px;letter-spacing:.04em}
 #arTable tbody tr:nth-child(even) td{background:color-mix(in srgb,var(--surface-2) 45%,var(--surface))}
 #arTable tbody tr:hover td{background:var(--accent-soft)}
 #pvTable tr.r-arch td:not(:first-child){opacity:.45}
 .st.arch{background:var(--surface-2);color:var(--muted)}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover,th.sortable[aria-sort="ascending"],th.sortable[aria-sort="descending"]{color:var(--text)}
+th.sortable:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.sort-ind{display:inline-block;min-width:12px;margin-left:4px;font-size:9px;color:var(--accent)}
+#ticketTable td.narrow,#arTable td.narrow{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Lecture des tableaux de tickets */
+.tickets-wrap{max-height:calc(100vh - 160px);overflow:auto}
+#ticketTable th,#arTable th{position:sticky;top:0;z-index:1;padding:9px 10px;box-shadow:inset 0 -1px 0 var(--line);border-bottom:0}
+#ticketTable td,#arTable td{padding:8px 10px;line-height:1.4}
+td.c-id{font-weight:600;color:var(--text);white-space:nowrap}
+td.c-date{color:var(--muted);white-space:nowrap}
+td.c-long{white-space:normal}
+.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.c-tag{display:inline-block;max-width:180px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;padding:1px 9px;border-radius:999px;background:var(--surface-2);color:var(--muted);font-size:11.5px;font-weight:500;white-space:nowrap}
+#ticketTable .del{opacity:0;transition:opacity .15s}
+#ticketTable tr:hover .del,#ticketTable .del:focus-visible{opacity:1}
+@media (hover:none){#ticketTable .del{opacity:1}}
 #ticketTable{font-size:12.5px}
-#ticketTable th,#ticketTable td{padding:6px 8px}
+
 #ticketTable th{font-size:11px;letter-spacing:.04em}
-#ticketTable td.long{min-width:160px;max-width:300px}
-#ticketTable td select{min-width:120px;padding:3px 6px;font-size:12.5px}
-#ticketTable td input[type=date]{padding:2px 6px;font-size:12.5px}
+
+#ticketTable .assign{
+  display:block;-webkit-appearance:none;appearance:none;width:118px;cursor:pointer;text-align:left;font-family:inherit;
+  padding:4px 24px 4px 10px;font-size:12.5px;font-weight:500;border-radius:999px;
+  border:1px solid var(--gold);background-color:var(--gold-soft);color:var(--text);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238891a8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 9px center;
+  text-overflow:ellipsis;white-space:nowrap;overflow:hidden;transition:background-color .15s,border-color .15s;
+}
+#ticketTable .assign.is-set{border-color:transparent;background-color:var(--accent-soft);color:var(--accent)}
+#ticketTable .assign:hover,#ticketTable .assign[aria-expanded="true"]{border-color:var(--accent)}
+#ticketTable .assign:focus-visible{outline:2px solid var(--accent-soft);border-color:var(--accent)}
+
+.filter-btn{
+  -webkit-appearance:none;appearance:none;display:inline-flex;align-items:center;gap:6px;max-width:220px;cursor:pointer;font-family:inherit;
+  padding:7px 30px 7px 12px;font-size:14px;border-radius:10px;border:1px solid var(--line);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238891a8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 11px center;
+}
+.filter-btn:hover,.filter-btn[aria-expanded="true"]{border-color:var(--accent)}
+.filter-btn.is-set{border-color:var(--accent);background-color:var(--accent-soft);color:var(--accent);font-weight:500}
+.avatar.xs{width:20px;height:20px;font-size:9px;flex:none}
+.filter-btn.is-set .avatar.xs{background:var(--accent);color:#fff}
+
+/* Fenêtre de confirmation */
+.modal-overlay{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:16px;background:rgba(15,19,28,.42);animation:fade .15s ease}
+.modal-overlay[hidden]{display:none}
+.modal{width:min(440px,100%);max-height:calc(100vh - 32px);overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:0 24px 60px rgba(15,19,28,.28);animation:pop .18s cubic-bezier(.2,.8,.2,1)}
+.modal h2{font-size:18px;margin:0 0 16px}
+.modal-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.modal-stats>div{background:var(--surface-2);border-radius:12px;padding:12px 14px;display:grid;gap:2px;font-size:13px;color:var(--muted)}
+.modal-num{font-size:24px;font-weight:600;color:var(--accent);line-height:1.2}
+.modal-num.gold{color:var(--gold)}
+.modal-num.muted{color:var(--muted)}
+.modal-kicker{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px}
+.modal-split{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:6px;max-height:240px;overflow-y:auto}
+.modal-split li{display:grid;grid-template-columns:24px minmax(70px,130px) 1fr 28px;align-items:center;gap:10px;font-size:13.5px}
+.modal-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.modal-bar{height:8px;background:var(--surface-2);border-radius:999px;overflow:hidden}
+.modal-bar span{display:block;height:100%;background:var(--accent);border-radius:999px}
+.modal-count{text-align:right;font-weight:600}
+.modal-note{font-size:13px;color:var(--muted);margin:0}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:22px}
+.modal-actions .btn{padding:9px 16px}
+.modal-actions .btn.success:focus-visible,.modal-actions .btn.primary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@keyframes fade{from{opacity:0}}
+@keyframes pop{from{opacity:0;transform:translateY(8px) scale(.98)}}
+@media (prefers-reduced-motion:reduce){.modal-overlay,.modal{animation:none}}
+
+/* Menu de choix de la personne */
+.picker{position:fixed;z-index:30;width:270px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:0 1px 2px rgba(20,26,42,.06),0 12px 32px rgba(20,26,42,.16)}
+.picker[hidden]{display:none}
+.picker-search{width:100%;font-size:13px;padding:7px 10px;margin-bottom:6px}
+.picker-list{list-style:none;margin:0;padding:0;max-height:min(460px,calc(100vh - 140px));overflow-y:auto}
+.picker-list li{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:13px}
+.picker-list li.active{background:var(--surface-2)}
+.picker-list li[aria-selected="true"]{font-weight:600}
+.picker-list li.picker-sep{height:1px;padding:0;margin:4px 6px;background:var(--line);cursor:default}
+.avatar.sm{width:24px;height:24px;font-size:10px;flex:none}
+.avatar.none{background:var(--gold-soft);color:var(--gold)}
+.picker-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.picker-count{font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.picker-check{color:var(--accent);font-weight:700;width:12px;text-align:center}
+.picker-empty{padding:10px 8px;color:var(--muted);font-size:13px;cursor:default!important}
+
 #ticketTable .del{padding:2px 6px}
 #ticketTable tbody tr:hover td{background:var(--accent-soft)}
 #ticketTable tbody tr:nth-child(even) td{background:color-mix(in srgb,var(--surface-2) 45%,var(--surface))}
@@ -231,6 +318,11 @@ td input[type=date]{padding:4px 8px}
 .menu button{display:block;width:100%;text-align:left;border:0;background:transparent;border-radius:8px;padding:8px 12px;font-size:14px;cursor:pointer}
 .menu button:hover,.menu button:focus-visible{background:var(--surface-2);outline:none}
 @media (max-width:600px){.menu{right:auto;left:0}}
+.order-hint{background:var(--gold-soft);border-left:3px solid var(--gold);border-radius:4px 10px 10px 4px;padding:10px 12px;margin-bottom:12px;font-size:13px}
+.order-title{display:block;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);margin-bottom:6px}
+.order-list{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px;counter-reset:col}
+.order-list li{counter-increment:col;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:2px 10px 2px 4px;font-size:12.5px;font-weight:500}
+.order-list li::before{content:counter(col);display:inline-grid;place-items:center;width:18px;height:18px;margin-right:6px;border-radius:50%;background:var(--gold);color:#fff;font-size:11px;font-weight:600}
 .import-panel{margin-bottom:24px}
 .import-panel[hidden]{display:none}
 .preview-card{margin-top:16px}
@@ -350,6 +442,15 @@ td input[type=date]{padding:4px 8px}
       <button class="btn" id="logoutBtn" type="button">Se déconnecter</button>
     </div>
 
+    <p class="kicker drawer-kicker">Mail de session</p>
+    <div class="mail-form">
+      <label>Destinataires <input type="text" id="mailTo" placeholder="prenom.nom@nextlane.com ; …" autocomplete="off"></label>
+      <label>Copie <input type="text" id="mailCc" placeholder="facultatif" autocomplete="off"></label>
+      <label>Objet <input type="text" id="mailSubject"></label>
+      <label>Message <textarea id="mailIntro" rows="4"></textarea></label>
+      <p class="help" style="margin:0">{date} et {nb} sont remplacés par la date de la session et le nombre de tickets. Réglages propres à ce navigateur. <span id="mailSaved" style="color:var(--accent);font-weight:600"></span></p>
+    </div>
+
     <p class="kicker drawer-kicker">Sessions enregistrées</p>
     <ul class="session-list" id="sessionList"></ul>
     <p class="help admin-only">Supprimer une session retire définitivement ses tickets des archives et des statistiques. La suppression peut être annulée juste après depuis l'onglet Tickets.</p>
@@ -392,6 +493,20 @@ td input[type=date]{padding:4px 8px}
 <div class="auth" id="loadingScreen"><p class="lede">Chargement…</p></div>
 
 <div id="app" hidden>
+<div class="modal-overlay no-print" id="modalOverlay" hidden>
+  <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalBody">
+    <h2 id="modalTitle"></h2>
+    <div id="modalBody"></div>
+    <div class="modal-actions">
+      <button class="btn" id="modalCancel" type="button">Annuler</button>
+      <button class="btn primary" id="modalOk" type="button">Confirmer</button>
+    </div>
+  </div>
+</div>
+<div class="picker no-print" id="assignPicker" role="dialog" aria-label="Choisir une personne" hidden>
+  <input type="search" class="picker-search" id="pickerSearch" placeholder="Rechercher une personne…" autocomplete="off" aria-controls="pickerList">
+  <ul class="picker-list" id="pickerList" role="listbox" aria-label="Personnes"></ul>
+</div>
 
 <div class="wrap">
   <header>
@@ -416,7 +531,7 @@ td input[type=date]{padding:4px 8px}
     <section>
       <div class="section-head">
         <h2>Session en cours <span class="tag" id="ticketCount">0</span></h2>
-        <div class="row no-print">
+        <div class="row no-print" style="align-items:flex-end">
           <button class="btn" id="toggleImport" type="button" aria-expanded="false" aria-controls="importPanel">Importer depuis Excel</button>
           <div class="menu-wrap">
             <button class="btn" id="exportToggle" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="exportMenu">Exporter ▾</button>
@@ -424,10 +539,12 @@ td input[type=date]{padding:4px 8px}
               <button type="button" role="menuitem" id="copyBtn">Copier pour Excel</button>
               <button type="button" role="menuitem" id="exportBtn">Sauvegarder (JSON)</button>
             </div>
-            <input type="file" id="jsonFile" accept=".json,application/json" hidden>
           </div>
           <button class="btn danger admin-only" id="clearBtn" type="button">Vider les tickets</button>
-          <button class="btn success" id="validateBtn" type="button" title="Archive les tickets affectés et vide la session">Valider la session</button>
+          <span class="validate-stack">
+            <button class="btn mail-btn" id="mailOutlook" type="button" hidden>✉ Ouvrir le mail dans Outlook</button>
+            <button class="btn success" id="validateBtn" type="button" title="Archive les tickets affectés et vide la session">Valider la session</button>
+          </span>
         </div>
       </div>
       <p class="msg no-print" id="tableMsg" style="margin:-6px 0 0"></p>
@@ -436,16 +553,9 @@ td input[type=date]{padding:4px 8px}
        <div class="grid">
         <div class="card">
           <h3>Coller depuis Excel</h3>
+          <div class="order-hint" id="pasteHint"></div>
           <textarea id="pasteArea" placeholder="Copiez les lignes de tickets dans Excel (sans les en-têtes), puis collez ici…"></textarea>
-          <div class="row" style="margin-top:12px;justify-content:space-between">
-            <span class="help" id="pasteHint" style="margin:0"></span>
-            <button class="btn" id="clearPaste" type="button">Effacer</button>
-          </div>
           <p class="help">L'aperçu s'affiche dès que vous collez : rien n'est ajouté avant d'avoir cliqué sur « Importer ». Un ticket déjà présent (même identifiant) est mis à jour sans perdre son affectation.</p>
-          <div class="row admin-only" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);justify-content:space-between">
-            <span class="help" style="margin:0">Ou remplacer toute la base par une sauvegarde</span>
-            <button class="btn" id="importJsonBtn" type="button">Restaurer (JSON)</button>
-          </div>
         </div>
         <div class="card">
           <h3>Modèle de colonnes</h3>
@@ -454,7 +564,7 @@ td input[type=date]{padding:4px 8px}
             <input type="text" id="colInput" placeholder="Nouvelle colonne" style="flex:1 1 140px" autocomplete="off">
             <button class="btn" type="submit">Ajouter</button>
           </form>
-          <p class="help">Les tickets sont toujours rangés selon ce modèle, dans cet ordre. La 1<sup>re</sup> colonne sert d'identifiant ; les colonnes cochées sont obligatoires à l'import.</p>
+          <p class="help">Les tickets sont toujours rangés selon ce modèle, dans cet ordre. La 1<sup>re</sup> colonne sert d'identifiant : elle est obligatoire à l'import.</p>
           <p class="help user-only">Seul un administrateur peut modifier le modèle.</p>
         </div>
         <div class="card">
@@ -464,9 +574,6 @@ td input[type=date]{padding:4px 8px}
             <input type="text" id="personInput" placeholder="Nom de la personne" style="flex:1 1 160px" autocomplete="off">
             <button class="btn" type="submit">Ajouter</button>
           </form>
-          <h3 style="margin-top:22px">Date prise en compte dans les statistiques</h3>
-          <select id="dateCol" style="width:100%"></select>
-          <p class="help">Par défaut, la date d'affectation est remplie automatiquement au moment du choix et reste modifiable.</p>
         </div>
        </div>
         <div class="card preview-card" id="previewCard" hidden>
@@ -486,10 +593,11 @@ td input[type=date]{padding:4px 8px}
         <input type="search" id="search" placeholder="Rechercher…">
         <div class="row">
           <label class="check"><input type="checkbox" id="onlyUnassigned"> Non affectés uniquement</label>
-          <select id="filterPerson"></select>
+          <select id="filterPerson" hidden></select>
+          <button type="button" class="filter-btn" id="filterPersonBtn" aria-haspopup="listbox" aria-expanded="false">Toutes les personnes</button>
         </div>
       </div>
-      <div class="table-wrap">
+      <div class="table-wrap tickets-wrap">
         <table id="ticketTable"><thead></thead><tbody></tbody></table>
       </div>
     </section>
@@ -507,10 +615,11 @@ td input[type=date]{padding:4px 8px}
         <input type="search" id="arSearch" placeholder="Rechercher…">
         <div class="row">
           <select id="arSession" aria-label="Session"></select>
-          <select id="arPerson" aria-label="Personne"></select>
+          <select id="arPerson" aria-label="Personne" hidden></select>
+          <button type="button" class="filter-btn" id="arPersonBtn" aria-haspopup="listbox" aria-expanded="false">Toutes les personnes</button>
         </div>
       </div>
-      <div class="table-wrap">
+      <div class="table-wrap tickets-wrap">
         <table id="arTable"><thead></thead><tbody></tbody></table>
       </div>
     </section>
@@ -627,7 +736,14 @@ td input[type=date]{padding:4px 8px}
   function pad(n){ return (n < 10 ? '0' : '') + n; }
   function isoDay(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
   function plural(n, one, many){ return n + ' ' + (n > 1 ? many : one); }
+  // Initiales prénom + nom des consultants (les noms affichés restent le prénom seul)
+  var KNOWN_INITIALS = {
+    'antoine': 'AL', 'christophe': 'CM', 'diogo': 'DR', 'hanh': 'HN', 'jeyson': 'JA', 'loic': 'LW',
+    'luc': 'LM', 'maria-jose': 'MH', 'maria jose': 'MH', 'maria': 'MS', 'raphael': 'RR', 'sylvie': 'SR', 'theo': 'TB'
+  };
   function initials(name){
+    var known = KNOWN_INITIALS[String(name).trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')];
+    if (known) return known;
     var p = name.trim().split(/[\s\-_.]+/).filter(Boolean);
     return ((p[0] || '?')[0] + (p.length > 1 ? p[p.length - 1][0] : (p[0] || '').slice(1, 2))).toUpperCase();
   }
@@ -685,33 +801,22 @@ td input[type=date]{padding:4px 8px}
     shiftDateCol(i, j);
     state.required[0] = true;
   }
-  function deleteCol(i){
-    var filled = allTickets().filter(function(t){ return (t.cells[i] || '').trim() !== ''; }).length;
-    if (state.columns.length === 1 && state.tickets.length){ alert('Le modèle doit garder au moins une colonne tant qu\'il y a des tickets.'); return false; }
-    if (filled && !confirm('La colonne « ' + state.columns[i] + ' » contient des valeurs pour ' + plural(filled, 'ticket', 'tickets') + '. Les supprimer définitivement ?')) return false;
-    state.columns.splice(i, 1); state.required.splice(i, 1);
-    allTickets().forEach(function(t){ t.cells.splice(i, 1); });
-    if (state.dateCol === i) state.dateCol = -1; else if (state.dateCol > i) state.dateCol--;
-    if (state.required.length) state.required[0] = true;
-    return true;
-  }
   function renderModel(){
     var n = state.columns.length, ro = isAdmin() ? '' : ' disabled';
     $('modelList').innerHTML = n ? state.columns.map(function(c, i){
       return '<li class="model-item" data-i="' + i + '">' +
         '<span class="model-n">' + (i + 1) + '</span>' +
         '<input type="text" class="model-name" value="' + esc(c) + '"' + ro + ' aria-label="Nom de la colonne ' + (i + 1) + '">' +
-        (i === 0 ? '<span class="key-tag" title="Sert à reconnaître un ticket déjà importé">Identifiant</span>'
-                 : '<label class="req"><input type="checkbox" class="model-req"' + (state.required[i] ? ' checked' : '') + ro + '> Obligatoire</label>') +
+        (i === 0 ? '<span class="key-tag" title="Sert à reconnaître un ticket déjà importé">Identifiant</span>' : '<span></span>') +
         (ro ? '' : '<span class="icon-btns">' +
           '<button type="button" class="icon-btn" data-act="up" title="Monter"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
           '<button type="button" class="icon-btn" data-act="down" title="Descendre"' + (i === n - 1 ? ' disabled' : '') + '>↓</button>' +
-          '<button type="button" class="icon-btn del-col" data-act="del" title="Supprimer la colonne">×</button>' +
         '</span>') + '</li>';
     }).join('') : '<li class="empty" style="font-size:12.5px">Aucun modèle pour l\'instant : il sera créé à partir des colonnes du premier import, puis modifiable ici.</li>';
     $('pasteHint').innerHTML = n
-      ? 'Ordre attendu : ' + state.columns.map(esc).join(' · ')
-      : 'Premier import : incluez la ligne d\'en-têtes, elle définira le modèle.';
+      ? '<span class="order-title">Ordre des colonnes à respecter</span><ol class="order-list">' +
+          state.columns.map(function(c){ return '<li>' + esc(c) + '</li>'; }).join('') + '</ol>'
+      : '<span class="order-title">Premier import</span>Incluez la ligne d\'en-têtes : elle définira le modèle de colonnes.';
     $('pasteArea').placeholder = n
       ? 'Copiez les lignes de tickets dans Excel (sans les en-têtes), puis collez ici…'
       : 'Copiez les tickets dans Excel avec la ligne d\'en-têtes, puis collez ici…';
@@ -722,13 +827,12 @@ td input[type=date]{padding:4px 8px}
     var i = +b.closest('[data-i]').dataset.i, act = b.dataset.act;
     if (act === 'up') swapCols(i, i - 1);
     else if (act === 'down') swapCols(i, i + 1);
-    else if (!deleteCol(i)) return;
+    else return;
     afterModelChange();
   });
   $('modelList').addEventListener('change', function(e){
     if (!isAdmin()) return;
     var i = +e.target.closest('[data-i]').dataset.i;
-    if (e.target.classList.contains('model-req')){ state.required[i] = e.target.checked; afterModelChange(); return; }
     if (e.target.classList.contains('model-name')){
       var v = e.target.value.trim();
       var taken = state.columns.some(function(c, k){ return k !== i && norm(c) === norm(v); });
@@ -795,7 +899,7 @@ td input[type=date]{padding:4px 8px}
       if (!model.length) errors.push('Aucune colonne à créer : gardez au moins une colonne pour le modèle.');
       else warns.push({ ok: true, text: 'Premier import : le modèle sera créé avec ces ' + plural(model.length, 'colonne', 'colonnes') + ' (« ' + esc(model[0]) + ' » comme identifiant). Vous pourrez le modifier ensuite.' });
     } else {
-      model = state.columns; required = state.required;
+      model = state.columns; required = model.map(function(_, i){ return i === 0; }); // seul l'identifiant est obligatoire
       pv.map.forEach(function(m, j){
         colOf[j] = -1;
         if (m === ASSIGN){ if (assignSrc >= 0) badSrc[j] = badSrc[assignSrc] = true; assignSrc = j; }
@@ -821,7 +925,6 @@ td input[type=date]{padding:4px 8px}
       errors.push('Plusieurs colonnes collées sont associées à « Affectation ».');
 
     var existing = ticketsByKey(), archived = archivedByKey(), seen = {}, counts = { 'new': 0, upd: 0, skip: 0, arch: 0, warn: 0 };
-    var dateCol = pv.creating ? -1 : state.dateCol;
     var rows = pv.data.map(function(r){
       var cells = model.map(function(){ return ''; }), issues = [], status;
       r.forEach(function(v, j){ if (colOf[j] >= 0) cells[colOf[j]] = v.trim(); });
@@ -830,7 +933,6 @@ td input[type=date]{padding:4px 8px}
       else if (archived[key] && !existing[key]){ status = 'arch'; issues.push('archivé le ' + sessionLabel(archived[key].sessionId)); }
       else {
         required.forEach(function(req, i){ if (i > 0 && req && used[i] && !cells[i]) issues.push('« ' + model[i] + ' » vide'); });
-        if (dateCol >= 0 && cells[dateCol] && !parseDate(cells[dateCol])) issues.push('date illisible');
         if (seen[key]) issues.push('en double dans le collage');
         status = existing[key] || seen[key] ? 'upd' : 'new';
         seen[key] = true;
@@ -933,7 +1035,7 @@ td input[type=date]{padding:4px 8px}
   function loadUndo(){ try { return JSON.parse(localStorage.getItem(undoKey())); } catch(e){ return null; } }
   function clearUndo(){ try { localStorage.removeItem(undoKey()); } catch(e){} }
   var UNDO_LABELS = {
-    session: ['Annuler la validation', 'cette validation de session', 'Validation annulée : les tickets sont revenus dans la session en cours.'],
+    session: ['Annuler la validation', 'cette validation de session', 'Validation annulée : les tickets, affectés ou non, sont revenus dans la session en cours.'],
     'delete-session': ['Annuler la suppression', 'cette suppression de session', 'Suppression annulée : la session est de nouveau dans les archives.'],
     'import': ['Annuler cet import', 'cet import', 'Import annulé.']
   };
@@ -995,7 +1097,6 @@ td input[type=date]{padding:4px 8px}
     return null;
   }
   function statDate(t){
-    if (state.dateCol >= 0) return parseDate(t.cells[state.dateCol]);
     return t.assignedAt ? parseDate(t.assignedAt) : null;
   }
 
@@ -1083,7 +1184,8 @@ td input[type=date]{padding:4px 8px}
     var fp = $('filterPerson'), cur = fp.value;
     fp.innerHTML = '<option value="">Toutes les personnes</option>' +
       allPeople().map(function(p){ return '<option>' + esc(p) + '</option>'; }).join('');
-    fp.value = cur;
+    fp.value = cur; if (fp.value !== cur) fp.value = '';
+    renderFilterButton('filterPerson', 'filterPersonBtn');
   }
   $('personForm').addEventListener('submit', function(e){
     e.preventDefault();
@@ -1100,32 +1202,66 @@ td input[type=date]{padding:4px 8px}
     state.people.splice(+b.dataset.i, 1); save(); audit('personne_retiree', { nom: name }); renderAll();
   });
 
-  function renderDateCol(){
-    var sel = $('dateCol');
-    sel.innerHTML = '<option value="-1">Date d\'affectation (saisie dans le tableau)</option>' +
-      state.columns.map(function(c, i){ return '<option value="' + i + '">Colonne « ' + esc(c) + ' »</option>'; }).join('');
-    sel.value = String(state.dateCol < state.columns.length ? state.dateCol : -1);
-    sel.disabled = !isAdmin();
-  }
-  $('dateCol').addEventListener('change', function(){ state.dateCol = +this.value; save(); renderStats(); renderBanner(); });
 
   /* ---------- Rendu : tickets ---------- */
-  function longCols(){
-    // Colonnes au texte long : passage à la ligne autorisé
-    return state.columns.map(function(_, i){
-      var lens = state.tickets.slice(0, 200).map(function(t){ return (t.cells[i] || '').length; });
-      return lens.length && Math.max.apply(null, lens) > 50;
+  // Colonne « Créé » : on n'affiche que la date (l'heure reste dans les données et dans « Copier pour Excel »)
+  function cellText(v, i){
+    if (!/^cree/.test(norm(state.columns[i]))) return v;
+    return String(v || '').replace(/^(\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4}|\d{4}-\d{1,2}-\d{1,2})[ T]+\d{1,2}:\d{2}.*$/, '$1');
+  }
+  // Colonnes tronquées sur une ligne avec « … », texte complet au survol : largeur maximale en pixels
+  var NARROW_COLS = [[/^demandeur/, 120], [/^organisation/, 130]];
+  // Colonnes élargies, avec retour à la ligne : largeur minimale en pixels
+  var WIDE_COLS = [[/^sujet/, 420]];
+  // Étiquettes à largeur réduite (texte complet au survol) : largeur maximale en pixels
+  var TAG_COLS = [[/^pole/, 80]];
+  function colWidth(list, i){
+    var n = norm(state.columns[i]);
+    for (var k = 0; k < list.length; k++) if (list[k][0].test(n)) return list[k][1];
+    return 0;
+  }
+  function isNarrow(i){ return colWidth(NARROW_COLS, i); }
+  function narrowAttrs(v, i){ var w = isNarrow(i); return w ? ' class="narrow" style="max-width:' + w + 'px" title="' + esc(v) + '"' : ''; }
+  // Rôle de chaque colonne, déduit de son nom et de son contenu :
+  // identifiant, date, colonne tronquée, colonne large, étiquette (peu de valeurs différentes), texte long ou texte
+  function columnKinds(){
+    var sample = allTickets().slice(-500);
+    return state.columns.map(function(c, i){
+      if (i === 0) return 'id';
+      if (colWidth(WIDE_COLS, i)) return 'wide';
+      if (isNarrow(i)) return 'narrow';
+      var seen = {}, distinct = 0, maxLen = 0, dates = 0, filled = 0;
+      sample.forEach(function(t){
+        var v = (t.cells[i] || '').trim(); if (!v) return;
+        filled++; maxLen = Math.max(maxLen, v.length);
+        if (/^\d{1,4}[\/.\-]\d{1,2}[\/.\-]\d{1,4}/.test(v) && parseDate(v)) dates++;
+        if (!seen[v]){ seen[v] = true; distinct++; }
+      });
+      if (filled && dates / filled > 0.8) return 'date';
+      if (filled >= 3 && distinct <= 12 && maxLen <= 24) return 'tag';
+      if (maxLen > 50) return 'long';
+      return 'text';
     });
   }
-  function assignOptions(current){
-    var list = state.people.slice();
-    if (current && list.indexOf(current) < 0) list.push(current);
-    return '<option value="">— Non affecté —</option>' + list.map(function(p){
-      return '<option' + (p === current ? ' selected' : '') + '>' + esc(p) + '</option>';
-    }).join('');
+  function cellHTML(v, i, kind){
+    var txt = esc(cellText(v, i));
+    switch (kind){
+      case 'id': return '<td class="c-id">' + txt + '</td>';
+      case 'date': return '<td class="c-date">' + txt + '</td>';
+      case 'narrow': return '<td' + narrowAttrs(v, i) + '>' + txt + '</td>';
+      case 'tag':
+        var tw = colWidth(TAG_COLS, i);
+        return '<td>' + (txt ? '<span class="c-tag"' + (tw ? ' style="max-width:' + tw + 'px" title="' + esc(v) + '"' : '') + '>' + txt + '</span>' : '') + '</td>';
+      case 'wide':
+        var w = colWidth(WIDE_COLS, i);
+        return '<td class="c-long" style="min-width:' + w + 'px;max-width:' + Math.round(w * 1.5) + 'px"><div class="clamp" title="' + esc(v) + '">' + txt + '</div></td>';
+      case 'long': return '<td class="c-long"><div class="clamp" title="' + esc(v) + '">' + txt + '</div></td>';
+      default: return '<td>' + txt + '</td>';
+    }
   }
   function renderTickets(){
     var table = $('ticketTable');
+    renderFilterButton('filterPerson', 'filterPersonBtn');
     var q = $('search').value.trim().toLowerCase();
     var only = $('onlyUnassigned').checked, who = $('filterPerson').value;
     var rows = state.tickets.filter(function(t){
@@ -1134,6 +1270,7 @@ td input[type=date]{padding:4px 8px}
       if (q && (t.cells.join(' ') + ' ' + t.assignee).toLowerCase().indexOf(q) < 0) return false;
       return true;
     });
+    rows = applySort(rows, 'tickets');
     $('ticketCount').textContent = rows.length === state.tickets.length ? nf.format(rows.length) : nf.format(rows.length) + ' / ' + nf.format(state.tickets.length);
 
     if (!state.columns.length){
@@ -1141,17 +1278,16 @@ td input[type=date]{padding:4px 8px}
       table.tBodies[0].innerHTML = '<tr><td class="empty" style="padding:28px;white-space:normal">Aucun ticket pour l\'instant. Cliquez sur « Importer depuis Excel » pour coller vos tickets.</td></tr>';
       return;
     }
-    var lc = longCols();
+    var kinds = columnKinds();
     var emptyText = state.tickets.length ? 'Aucun ticket ne correspond aux filtres.' : 'Aucun ticket dans la session en cours. Cliquez sur « Importer depuis Excel » pour en ajouter.';
-    table.tHead.innerHTML = '<tr>' + state.columns.map(function(c){ return '<th>' + esc(c) + '</th>'; }).join('') +
-      '<th>Affectation</th><th>Date d\'affectation</th><th class="no-print"></th></tr>';
+    table.tHead.innerHTML = '<tr>' + state.columns.map(function(c, i){ return sortTh('tickets', i, c); }).join('') +
+      sortTh('tickets', 'assignee', 'Affectation') + '<th class="no-print"></th></tr>';
     table.tBodies[0].innerHTML = rows.length ? rows.map(function(t){
       return '<tr data-id="' + t.id + '"' + (t.assignee ? '' : ' class="unassigned"') + '>' +
-        t.cells.map(function(v, i){ return '<td' + (lc[i] ? ' class="long"' : '') + '>' + esc(v) + '</td>'; }).join('') +
-        '<td><select class="assign" aria-label="Affectation">' + assignOptions(t.assignee) + '</select></td>' +
-        '<td><input type="date" class="adate" value="' + esc(t.assignedAt || '') + '" aria-label="Date d\'affectation"></td>' +
+        t.cells.map(function(v, i){ return cellHTML(v, i, kinds[i]); }).join('') +
+        '<td><button type="button" class="assign' + (t.assignee ? ' is-set' : '') + '" aria-haspopup="listbox" aria-expanded="false" title="' + esc(t.assignee || 'Non affecté') + '">' + esc(t.assignee || 'Non affecté') + '</button></td>' +
         '<td class="no-print"><button class="del" type="button" title="Supprimer ce ticket" aria-label="Supprimer">×</button></td></tr>';
-    }).join('') : '<tr><td colspan="' + (state.columns.length + 3) + '" class="empty" style="padding:20px;white-space:normal">' + emptyText + '</td></tr>';
+    }).join('') : '<tr><td colspan="' + (state.columns.length + 2) + '" class="empty" style="padding:20px;white-space:normal">' + emptyText + '</td></tr>';
   }
   function findTicket(el){
     var tr = el.closest('tr[data-id]'); if (!tr) return null;
@@ -1160,24 +1296,159 @@ td input[type=date]{padding:4px 8px}
     return null;
   }
   var tbody = $('ticketTable').tBodies[0];
-  tbody.addEventListener('change', function(e){
-    var f = findTicket(e.target); if (!f) return;
-    if (e.target.classList.contains('assign')){
-      f.t.assignee = e.target.value;
-      f.t.assignedAt = e.target.value ? isoDay(new Date()) : '';
-      f.tr.querySelector('.adate').value = f.t.assignedAt;
-      f.tr.classList.toggle('unassigned', !f.t.assignee);
-    } else if (e.target.classList.contains('adate')){
-      f.t.assignedAt = e.target.value;
-    }
-    save(); renderStats(); renderBanner();
+  tbody.addEventListener('click', function(e){
+    var b = e.target.closest('.assign'); if (!b) return;
+    if (picker && picker.btn === b){ closePicker(false); return; }
+    var f = findTicket(b); if (!f) return;
+    var id = f.t.id;
+    openPicker(b, {
+      current: f.t.assignee || '', people: state.people, counts: sessionLoad(),
+      countTitle: 'Tickets déjà affectés dans la session en cours', firstLabel: 'Non affecté',
+      onChoose: function(v){
+        for (var i = 0; i < state.tickets.length; i++) if (state.tickets[i].id === id){ setAssignee(state.tickets[i], v); break; }
+      }
+    });
   });
+
+  /* ---------- Menu de choix d'une personne : affectation et filtres ---------- */
+  // Recherche, initiales, nombre de tickets par personne, navigation au clavier.
+  var picker = null; // { btn, opts, items, active }
+  function sessionLoad(){
+    var c = {};
+    state.tickets.forEach(function(t){ if (t.assignee) c[t.assignee] = (c[t.assignee] || 0) + 1; });
+    return c;
+  }
+  function pickerItems(){
+    var q = norm($('pickerSearch').value), o = picker.opts;
+    var list = o.people.slice();
+    if (o.current && list.indexOf(o.current) < 0) list.push(o.current);
+    list.sort(function(a, b){ return a.localeCompare(b, 'fr', { sensitivity: 'base' }); });
+    var items = list.map(function(p){ return { value: p, label: p }; });
+    if (q) return items.filter(function(it){ return norm(it.label).indexOf(q) >= 0; });
+    return [{ value: '', label: o.firstLabel }].concat(items);
+  }
+  function renderPicker(){
+    var o = picker.opts, items = picker.items = pickerItems();
+    if (picker.active >= items.length) picker.active = Math.max(0, items.length - 1);
+    $('pickerList').innerHTML = items.length ? items.map(function(it, k){
+      var sel = it.value === o.current, n = it.value && o.counts[it.value];
+      return (k === 1 && !items[0].value ? '<li class="picker-sep" role="presentation"></li>' : '') +
+        '<li role="option" id="pick-' + k + '" data-k="' + k + '" aria-selected="' + sel + '"' + (k === picker.active ? ' class="active"' : '') + '>' +
+        '<span class="avatar sm' + (it.value ? '' : ' none') + '" aria-hidden="true">' + (it.value ? esc(initials(it.label)) : '–') + '</span>' +
+        '<span class="picker-name">' + esc(it.label) + '</span>' +
+        (n ? '<span class="picker-count" title="' + esc(o.countTitle) + '">' + n + '</span>' : '') +
+        '<span class="picker-check" aria-hidden="true">' + (sel ? '✓' : '') + '</span></li>';
+    }).join('') : '<li class="picker-empty">Aucune personne trouvée</li>';
+    $('pickerSearch').setAttribute('aria-activedescendant', items.length ? 'pick-' + picker.active : '');
+    var act = $('pickerList').querySelector('li.active');
+    if (act && act.scrollIntoView) act.scrollIntoView({ block: 'nearest' });
+  }
+  function positionPicker(){
+    var r = picker.btn.getBoundingClientRect(), el = $('assignPicker');
+    var left = Math.min(Math.max(8, r.left), window.innerWidth - el.offsetWidth - 8);
+    var top = r.bottom + 6;
+    if (top + el.offsetHeight > window.innerHeight - 8) top = Math.max(8, r.top - el.offsetHeight - 6);
+    el.style.left = left + 'px'; el.style.top = top + 'px';
+  }
+  // opts : { current, people, counts, countTitle, firstLabel, onChoose(valeur) }
+  function openPicker(btn, opts){
+    closePicker(false);
+    picker = { btn: btn, opts: opts, active: 0 };
+    btn.setAttribute('aria-expanded', 'true');
+    $('pickerSearch').value = '';
+    $('assignPicker').hidden = false;
+    renderPicker();
+    var cur = picker.items.map(function(it){ return it.value; }).indexOf(opts.current);
+    if (cur > 0){ picker.active = cur; renderPicker(); }
+    positionPicker();
+    $('pickerSearch').focus();
+  }
+  function closePicker(focusBtn){
+    if (!picker) return;
+    var b = picker.btn;
+    b.setAttribute('aria-expanded', 'false');
+    $('assignPicker').hidden = true; picker = null;
+    if (focusBtn && document.body.contains(b)) b.focus();
+  }
+  function choosePick(k){
+    var it = picker && picker.items[k]; if (!it) return;
+    var choose = picker.opts.onChoose; closePicker(false);
+    choose(it.value);
+  }
+  // La date d'affectation n'est pas affichée : elle est enregistrée pour l'archivage et les statistiques
+  function setAssignee(t, v){
+    if ((t.assignee || '') !== v){
+      t.assignee = v;
+      t.assignedAt = v ? isoDay(new Date()) : '';
+      save(); renderTickets(); renderStats(); renderBanner();
+    }
+    var b = $('ticketTable').querySelector('tr[data-id="' + t.id + '"] .assign'); if (b) b.focus();
+  }
+
+  // Filtres par personne : le bouton ouvre le même menu ; la valeur reste portée par la liste masquée
+  function filterButton(selectId, btnId, people, counts, countTitle, render){
+    var btn = $(btnId);
+    btn.addEventListener('click', function(){
+      if (picker && picker.btn === btn){ closePicker(false); return; }
+      var sel = $(selectId);
+      openPicker(btn, {
+        current: sel.value, people: people(), counts: counts(), countTitle: countTitle, firstLabel: 'Toutes les personnes',
+        onChoose: function(v){ sel.value = v; render(); btn.focus(); }
+      });
+    });
+  }
+  function renderFilterButton(selectId, btnId){
+    var v = $(selectId).value, btn = $(btnId);
+    btn.classList.toggle('is-set', !!v);
+    btn.innerHTML = v ? '<span class="avatar xs" aria-hidden="true">' + esc(initials(v)) + '</span>' + esc(v) : 'Toutes les personnes';
+    btn.title = v ? 'Filtré sur ' + v : 'Filtrer par personne';
+  }
+  filterButton('filterPerson', 'filterPersonBtn', allPeople, sessionLoad, 'Tickets affectés dans la session en cours', renderTickets);
+  filterButton('arPerson', 'arPersonBtn', function(){
+    var list = [];
+    state.archive.forEach(function(t){ if (t.assignee && list.indexOf(t.assignee) < 0) list.push(t.assignee); });
+    return list;
+  }, function(){
+    var c = {};
+    state.archive.forEach(function(t){ if (t.assignee) c[t.assignee] = (c[t.assignee] || 0) + 1; });
+    return c;
+  }, 'Tickets archivés', renderArchive);
+
+  $('pickerSearch').addEventListener('input', function(){ picker.active = 0; renderPicker(); positionPicker(); });
+  $('pickerSearch').addEventListener('keydown', function(e){
+    if (!picker) return;
+    var n = picker.items.length;
+    if (e.key === 'ArrowDown' && n){ e.preventDefault(); picker.active = (picker.active + 1) % n; renderPicker(); }
+    else if (e.key === 'ArrowUp' && n){ e.preventDefault(); picker.active = (picker.active - 1 + n) % n; renderPicker(); }
+    else if (e.key === 'Enter'){ e.preventDefault(); choosePick(picker.active); }
+    else if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); closePicker(true); }
+    else if (e.key === 'Tab') closePicker(false);
+  });
+  $('pickerList').addEventListener('click', function(e){
+    var li = e.target.closest('li[data-k]'); if (li) choosePick(+li.dataset.k);
+  });
+  $('pickerList').addEventListener('mousemove', function(e){
+    var li = e.target.closest('li[data-k]');
+    if (li && +li.dataset.k !== picker.active){
+      picker.active = +li.dataset.k;
+      $('pickerList').querySelectorAll('li[data-k]').forEach(function(x){ x.classList.toggle('active', x === li); });
+    }
+  });
+  document.addEventListener('mousedown', function(e){
+    if (picker && !e.target.closest('#assignPicker') && !e.target.closest('.assign, .filter-btn')) closePicker(false);
+  });
+  window.addEventListener('resize', function(){ closePicker(false); });
+  window.addEventListener('scroll', function(e){
+    if (picker && !(e.target.closest && e.target.closest('#assignPicker'))) closePicker(false);
+  }, true);
+
   tbody.addEventListener('click', function(e){
     if (!e.target.classList.contains('del')) return;
     var f = findTicket(e.target); if (!f) return;
+    if (!confirm('Supprimer le ticket « ' + (f.t.cells[0] || 'sans identifiant') + ' » de la session en cours ?')) return;
     state.tickets.splice(f.i, 1); save(); audit('ticket_supprime', { ticket: f.t.cells[0] }); renderTickets(); renderStats(); renderBanner();
   });
-  ['search', 'onlyUnassigned', 'filterPerson'].forEach(function(id){
+  ['search', 'onlyUnassigned'].forEach(function(id){
     $(id).addEventListener(id === 'search' ? 'input' : 'change', renderTickets);
   });
 
@@ -1205,7 +1476,6 @@ td input[type=date]{padding:4px 8px}
   var pasteTimer;
   $('pasteArea').addEventListener('input', function(){ clearTimeout(pasteTimer); pasteTimer = setTimeout(buildPreview, 250); });
   function resetPaste(){ $('pasteArea').value = ''; pv = null; renderPreview(); }
-  $('clearPaste').addEventListener('click', resetPaste);
   $('pvCancel').addEventListener('click', resetPaste);
   $('pvTable').addEventListener('change', function(e){
     var j = e.target.dataset.j; if (j == null) return;
@@ -1241,12 +1511,71 @@ td input[type=date]{padding:4px 8px}
   $('arCopy').addEventListener('click', function(){ copyText(toTSV(archiveRows(), true), $('arMsg')); });
 
   /* ---------- Validation de session ---------- */
+  /* ---------- Fenêtre de confirmation ---------- */
+  // askConfirm({ title, html, confirmLabel, tone: 'success' | 'primary' | 'danger', cancelLabel }) → Promise<boolean>
+  var modalResolve = null, modalReturnFocus = null;
+  function askConfirm(o){
+    $('modalTitle').textContent = o.title;
+    $('modalBody').innerHTML = o.html || '';
+    $('modalOk').textContent = o.confirmLabel || 'Confirmer';
+    $('modalOk').className = 'btn ' + (o.tone || 'primary');
+    $('modalCancel').textContent = o.cancelLabel || 'Annuler';
+    $('modalCancel').hidden = o.cancelLabel === false;
+    modalReturnFocus = document.activeElement;
+    $('modalOverlay').hidden = false;
+    $('modalOk').focus();
+    return new Promise(function(resolve){ modalResolve = resolve; });
+  }
+  function closeModal(ok){
+    if (!modalResolve) return;
+    var r = modalResolve; modalResolve = null;
+    $('modalOverlay').hidden = true;
+    if (modalReturnFocus && document.body.contains(modalReturnFocus)) modalReturnFocus.focus();
+    r(ok);
+  }
+  $('modalOk').addEventListener('click', function(){ closeModal(true); });
+  $('modalCancel').addEventListener('click', function(){ closeModal(false); });
+  $('modalOverlay').addEventListener('mousedown', function(e){ if (e.target === this) closeModal(false); });
+  $('modalOverlay').addEventListener('keydown', function(e){
+    if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); closeModal(false); }
+    if (e.key === 'Tab'){ // la tabulation reste dans la fenêtre
+      var f = [$('modalCancel'), $('modalOk')].filter(function(b){ return !b.hidden; });
+      var i = f.indexOf(document.activeElement);
+      e.preventDefault(); f[(i + (e.shiftKey ? f.length - 1 : 1)) % f.length].focus();
+    }
+  });
+
+  // Récapitulatif de la validation : chiffres clés et répartition par personne
+  function validationHTML(done, rest){
+    var counts = {};
+    done.forEach(function(t){ counts[t.assignee] = (counts[t.assignee] || 0) + 1; });
+    var sorted = sortCounts(counts), max = sorted.length ? sorted[0][1] : 1;
+    return '<div class="modal-stats">' +
+        '<div><span class="modal-num">' + done.length + '</span><span>' + (done.length > 1 ? 'tickets archivés' : 'ticket archivé') + '</span></div>' +
+        '<div><span class="modal-num' + (rest.length ? ' gold' : ' muted') + '">' + rest.length + '</span><span>' + (rest.length > 1 ? 'non affectés retirés' : 'non affecté retiré') + '</span></div>' +
+      '</div>' +
+      '<p class="modal-kicker">Répartition</p>' +
+      '<ul class="modal-split">' + sorted.map(function(e){
+        return '<li><span class="avatar sm" aria-hidden="true">' + esc(initials(e[0])) + '</span>' +
+          '<span class="modal-name">' + esc(e[0]) + '</span>' +
+          '<span class="modal-bar"><span style="width:' + Math.round(e[1] / max * 100) + '%"></span></span>' +
+          '<span class="modal-count">' + e[1] + '</span></li>';
+      }).join('') + '</ul>' +
+      '<p class="modal-note">Les tickets archivés sont comptabilisés dans les statistiques' +
+      (rest.length ? ' ; les tickets non affectés sont retirés de la session, ils seront réimportés à la prochaine.' : '.') + '</p>';
+  }
+
   $('validateBtn').addEventListener('click', function(){
     var done = state.tickets.filter(function(t){ return t.assignee; });
     var rest = state.tickets.filter(function(t){ return !t.assignee; });
-    if (!done.length){ alert('Aucun ticket affecté : affectez au moins un ticket avant de valider la session.'); return; }
-    if (!confirm('Valider la session ?\n\n' + plural(done.length, 'ticket affecté sera archivé', 'tickets affectés seront archivés') + ' et comptabilisé' + (done.length > 1 ? 's' : '') + ' dans les statistiques.' +
-      (rest.length ? '\n' + plural(rest.length, 'ticket non affecté reste', 'tickets non affectés restent') + ' dans la session en cours.' : ''))) return;
+    if (!done.length){
+      askConfirm({ title: 'Aucun ticket affecté', html: '<p class="modal-note">Affectez au moins un ticket avant de valider la session.</p>', confirmLabel: 'OK', cancelLabel: false });
+      return;
+    }
+    askConfirm({ title: 'Valider la session ?', html: validationHTML(done, rest), confirmLabel: 'Valider la session', tone: 'success' })
+      .then(function(ok){ if (ok) validateSession(done, rest); });
+  });
+  function validateSession(done, rest){
     var ses = { id: uid(), at: new Date().toISOString() }, today = isoDay(new Date());
     state.sessions.push(ses);
     done.forEach(function(t){
@@ -1254,19 +1583,103 @@ td input[type=date]{padding:4px 8px}
       if (!t.assignedAt) t.assignedAt = today;
       state.archive.push(t);
     });
-    state.tickets = rest;
+    state.tickets = []; // les non affectés sont retirés : ils reviendront avec le prochain import
     var inv = save();
-    audit('session_validee', { session_id: ses.id, at: ses.at, tickets: done.length });
-    saveUndo(inv, 'session', 'Session validée le {date} : <strong>' + plural(done.length, 'ticket archivé', 'tickets archivés') + '</strong>' + (rest.length ? ', ' + plural(rest.length, 'non affecté conservé', 'non affectés conservés') : '') + '.');
+    audit('session_validee', { session_id: ses.id, at: ses.at, tickets: done.length, non_affectes_retires: rest.length });
+    saveUndo(inv, 'session', 'Session validée le {date} : <strong>' + plural(done.length, 'ticket archivé', 'tickets archivés') + '</strong>' + (rest.length ? ', ' + plural(rest.length, 'non affecté retiré', 'non affectés retirés') : '') + '.');
     $('tableMsg').textContent = '';
     renderAll();
+    showMailBar(ses.id);
+  }
+
+  /* ---------- Mail de fin de session (Outlook) ---------- */
+  // Réglages propres à chaque utilisateur (navigateur). {date} et {nb} sont remplacés à la création du mail.
+  var MAIL_KEY = 'affectation-mail-v2'; // v2 : nouveaux réglages par défaut (destinataire, objet)
+  var MAIL_DEFAULTS = {
+    to: 'assistance.icardms.grp@nextlane.com', cc: '',
+    subject: 'Affectation des tickets prioritaires - {date}',
+    intro: 'Bonjour,\n\nVoici la répartition des {nb} tickets de la session du {date} :'
+  };
+  function mailSettings(){
+    try { return Object.assign({}, MAIL_DEFAULTS, JSON.parse(localStorage.getItem(MAIL_KEY)) || {}); } catch(e){ return Object.assign({}, MAIL_DEFAULTS); }
+  }
+  function renderMailSettings(){
+    var m = mailSettings();
+    $('mailTo').value = m.to; $('mailCc').value = m.cc; $('mailSubject').value = m.subject; $('mailIntro').value = m.intro;
+  }
+  ['mailTo', 'mailCc', 'mailSubject', 'mailIntro'].forEach(function(id){
+    $(id).addEventListener('change', function(){
+      var m = { to: $('mailTo').value.trim(), cc: $('mailCc').value.trim(), subject: $('mailSubject').value, intro: $('mailIntro').value };
+      try { localStorage.setItem(MAIL_KEY, JSON.stringify(m)); } catch(e){}
+      $('mailSaved').textContent = 'Enregistré.';
+      setTimeout(function(){ $('mailSaved').textContent = ''; }, 1500);
+    });
   });
+
+  var mailSessionId = null; // session proposée dans le bandeau « Préparer le mail »
+  function sessionTickets(id){ return state.archive.filter(function(t){ return t.sessionId === id; }); }
+  function fillMailText(text, id){
+    var s = state.sessions.filter(function(x){ return x.id === id; })[0];
+    var day = s ? new Date(s.at).toLocaleDateString('fr-FR') : '';  // date de la session, sans l'heure
+    return String(text || '').replace(/\{date\}/g, day).replace(/\{nb\}/g, sessionTickets(id).length);
+  }
+  function addressList(v){ return String(v || '').split(/[;,]/).map(function(a){ return a.trim(); }).filter(Boolean); }
+
+  // Corps du mail en HTML : texte d'introduction, tableau des tickets, puis un espace avant la signature
+  function mailHTML(id){
+    var m = mailSettings(), tickets = sessionTickets(id);
+    var td = 'border:1px solid #d0d5e0;padding:5px 9px;vertical-align:top;';
+    var intro = esc(fillMailText(m.intro, id)).replace(/\n/g, '<br>');
+    var head = state.columns.concat(['Affectation']).map(function(c){
+      return '<th style="' + td + 'background:#eef1f7;text-align:left;font-weight:600;">' + esc(c) + '</th>';
+    }).join('');
+    var body = tickets.map(function(t, k){
+      return '<tr' + (k % 2 ? ' style="background:#f7f8fb;"' : '') + '>' + t.cells.map(function(v, i){
+        return '<td style="' + td + (i === 0 ? 'font-weight:600;white-space:nowrap;' : '') + '">' + esc(cellText(v, i)) + '</td>';
+      }).join('') + '<td style="' + td + 'font-weight:600;white-space:nowrap;">' + esc(t.assignee) + '</td></tr>';
+    }).join('');
+    return '<div style="font-family:Calibri,\'Segoe UI\',Arial,sans-serif;font-size:11pt;color:#141a2a;">' +
+      '<p>' + intro + '</p>' +
+      '<table style="border-collapse:collapse;font-size:10pt;">' + '<thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table>' +
+      '<p>&nbsp;</p>' +
+      '</div>';
+  }
+
+  // A. Brouillon .eml : Outlook classique l'ouvre comme un nouveau mail prêt à envoyer
+  function b64(str){
+    var bin = unescape(encodeURIComponent(str)), out = btoa(bin);
+    return out.replace(/(.{76})/g, '$1\r\n');
+  }
+  function mailDraft(id){
+    var m = mailSettings(), subject = fillMailText(m.subject, id);
+    var lines = [];
+    if (addressList(m.to).length) lines.push('To: ' + addressList(m.to).join(', '));
+    if (addressList(m.cc).length) lines.push('Cc: ' + addressList(m.cc).join(', '));
+    lines.push('Subject: =?UTF-8?B?' + btoa(unescape(encodeURIComponent(subject))) + '?=');
+    lines.push('X-Unsent: 1', 'MIME-Version: 1.0', 'Content-Type: text/html; charset=UTF-8', 'Content-Transfer-Encoding: base64', '');
+    var html = '<!doctype html><html><head><meta charset="utf-8"></head><body>' + mailHTML(id) + '</body></html>';
+    var blob = new Blob([lines.join('\r\n') + '\r\n' + b64(html)], { type: 'message/rfc822' });
+    var a = document.createElement('a'), at = new Date(state.sessions.filter(function(s){ return s.id === id; })[0].at);
+    a.href = URL.createObjectURL(blob);
+    a.download = 'session-' + isoDay(at) + '-' + pad(at.getHours()) + pad(at.getMinutes()) + '.eml';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
+  }
+
+  // Bouton « Ouvrir le mail dans Outlook », affiché au-dessus de « Valider la session » après une validation
+  function showMailBar(id){
+    mailSessionId = id;
+    var btn = $('mailOutlook');
+    btn.hidden = !id;
+    if (id) btn.title = 'Mail de la session du ' + sessionLabel(id) + ' (' + plural(sessionTickets(id).length, 'ticket', 'tickets') + ')';
+  }
+  $('mailOutlook').addEventListener('click', function(){ if (mailSessionId) mailDraft(mailSessionId); });
 
   /* ---------- Paramètres ---------- */
   var lastFocus = null;
   function setSettingsOpen(open){
     $('settingsOverlay').hidden = !open;
-    if (open){ lastFocus = document.activeElement; renderSessions(); renderAudit(); $('settingsClose').focus(); }
+    if (open){ lastFocus = document.activeElement; renderSessions(); renderMailSettings(); renderAudit(); $('settingsClose').focus(); }
     else if (lastFocus) lastFocus.focus();
   }
   $('gearBtn').addEventListener('click', function(){ setSettingsOpen(true); });
@@ -1285,10 +1698,13 @@ td input[type=date]{padding:4px 8px}
       var who = Object.keys(info.people).sort(function(a, b){ return info.people[b] - info.people[a]; })
         .map(function(p){ return esc(p) + ' ' + info.people[p]; }).join(', ');
       return '<li class="session-item"><div><strong>' + fmtDateTime(s.at) + '</strong><span>' + plural(info.n, 'ticket', 'tickets') + (who ? ' · ' + who : '') + '</span></div>' +
-        (isAdmin() ? '<button class="btn danger" type="button" data-session="' + s.id + '">Supprimer</button>' : '') + '</li>';
+        '<span class="session-actions"><button class="btn" type="button" data-mail="' + s.id + '" title="Préparer le mail de cette session">Mail</button>' +
+        (isAdmin() ? '<button class="btn danger" type="button" data-session="' + s.id + '">Supprimer</button>' : '') + '</span></li>';
     }).join('') : '<li class="empty" style="font-size:13px">Aucune session enregistrée pour l\'instant.</li>';
   }
   $('sessionList').addEventListener('click', function(e){
+    var mb = e.target.closest('[data-mail]');
+    if (mb){ setSettingsOpen(false); selectTab($('tab-tickets')); mailDraft(mb.dataset.mail); return; }
     var b = e.target.closest('[data-session]'); if (!b || !isAdmin()) return;
     var id = b.dataset.session, label = sessionLabel(id);
     var n = state.archive.filter(function(t){ return t.sessionId === id; }).length;
@@ -1301,20 +1717,64 @@ td input[type=date]{padding:4px 8px}
   });
 
   /* ---------- Archives ---------- */
-  // Tickets archivés filtrés, session la plus récente en premier
+  // Tickets archivés filtrés : session la plus récente en premier, sauf tri choisi par l'utilisateur
   function archiveRows(){
     var q = $('arSearch').value.trim().toLowerCase(), who = $('arPerson').value, ses = $('arSession').value;
     var order = {};
     state.sessions.forEach(function(s, i){ order[s.id] = i; });
-    return state.archive.filter(function(t){
+    return applySort(state.archive.filter(function(t){
       if (ses && t.sessionId !== ses) return false;
       if (who && t.assignee !== who) return false;
       if (q && (t.cells.join(' ') + ' ' + t.assignee).toLowerCase().indexOf(q) < 0) return false;
       return true;
     }).map(function(t, i){ return [t, i]; })
       .sort(function(a, b){ return (order[b[0].sessionId] || 0) - (order[a[0].sessionId] || 0) || a[1] - b[1]; })
-      .map(function(x){ return x[0]; });
+      .map(function(x){ return x[0]; }), 'archive');
   }
+
+  /* ---------- Tri par colonne (clic sur l'en-tête : croissant, décroissant, puis ordre d'origine) ---------- */
+  var sorts = { tickets: null, archive: null }; // { key, dir }
+  function sortValue(t, key){
+    if (key === 'assignee') return t.assignee || '';
+    if (key === 'assignedAt') return t.assignedAt || '';
+    if (key === 'session') return t.archivedAt || '';
+    return t.cells[+key] || '';
+  }
+  // Compare comme des dates, puis des nombres, sinon comme du texte (« INC2 » avant « INC10 »)
+  function compareValues(a, b){
+    var da = parseDate(a), dbt = parseDate(b);
+    if (da && dbt) return (da - dbt) || a.localeCompare(b, 'fr', { numeric: true });
+    var na = Number(a.replace(',', '.')), nb = Number(b.replace(',', '.'));
+    if (!isNaN(na) && !isNaN(nb)) return na - nb;
+    return a.localeCompare(b, 'fr', { numeric: true, sensitivity: 'base' });
+  }
+  function applySort(rows, which){
+    var s = sorts[which]; if (!s) return rows;
+    return rows.map(function(t, i){ return [t, i]; }).sort(function(x, y){
+      var a = String(sortValue(x[0], s.key)).trim(), b = String(sortValue(y[0], s.key)).trim();
+      if (!a !== !b) return a ? -1 : 1; // cases vides toujours en bas
+      return (a && b ? compareValues(a, b) * s.dir : 0) || x[1] - y[1];
+    }).map(function(x){ return x[0]; });
+  }
+  function sortTh(which, key, label){
+    var s = sorts[which], on = s && s.key === String(key);
+    return '<th class="sortable" tabindex="0" data-sort="' + key + '" aria-sort="' + (on ? (s.dir > 0 ? 'ascending' : 'descending') : 'none') + '">' +
+      esc(label) + '<span class="sort-ind" aria-hidden="true">' + (on ? (s.dir > 0 ? '▲' : '▼') : '') + '</span></th>';
+  }
+  function bindSort(tableId, which, render){
+    var head = $(tableId).tHead;
+    function go(e){
+      var th = e.target.closest('th[data-sort]'); if (!th) return;
+      var key = th.dataset.sort, s = sorts[which];
+      sorts[which] = s && s.key === key ? (s.dir > 0 ? { key: key, dir: -1 } : null) : { key: key, dir: 1 };
+      render();
+      var again = $(tableId).querySelector('th[data-sort="' + key + '"]'); if (again && e.type === 'keydown') again.focus();
+    }
+    head.addEventListener('click', go);
+    head.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(e); } });
+  }
+  bindSort('ticketTable', 'tickets', renderTickets);
+  bindSort('arTable', 'archive', renderArchive);
   function fmtDay(iso){ var d = parseDate(iso); return d ? d.toLocaleDateString('fr-FR') : ''; }
   function renderArchive(){
     var counts = {};
@@ -1329,21 +1789,23 @@ td input[type=date]{padding:4px 8px}
     people.sort(function(a, b){ return a.localeCompare(b, 'fr'); });
     sp.innerHTML = '<option value="">Toutes les personnes</option>' + people.map(function(p){ return '<option>' + esc(p) + '</option>'; }).join('');
     sp.value = curP; if (sp.value !== curP) sp.value = '';
+    renderFilterButton('arPerson', 'arPersonBtn');
 
-    var rows = archiveRows(), table = $('arTable');
+    var rows = archiveRows(), table = $('arTable'), kinds = columnKinds();
     $('arCount').textContent = rows.length === state.archive.length ? nf.format(rows.length) : nf.format(rows.length) + ' / ' + nf.format(state.archive.length);
     $('tabArchiveSub').textContent = plural(state.archive.length, 'ticket', 'tickets');
     if (!state.columns.length){ table.tHead.innerHTML = ''; table.tBodies[0].innerHTML = '<tr><td class="empty" style="padding:28px">Aucun ticket archivé.</td></tr>'; return; }
-    table.tHead.innerHTML = '<tr>' + state.columns.map(function(c){ return '<th>' + esc(c) + '</th>'; }).join('') +
-      '<th>Affectation</th><th>Date d\'affectation</th><th>Session</th><th class="no-print"></th></tr>';
+    table.tHead.innerHTML = '<tr>' + state.columns.map(function(c, i){ return sortTh('archive', i, c); }).join('') +
+      sortTh('archive', 'assignee', 'Affectation') + sortTh('archive', 'assignedAt', 'Date d\'affectation') +
+      sortTh('archive', 'session', 'Session') + '<th class="no-print"></th></tr>';
     table.tBodies[0].innerHTML = rows.length ? rows.map(function(t){
-      return '<tr data-id="' + t.id + '">' + t.cells.map(function(v){ return '<td>' + esc(v) + '</td>'; }).join('') +
+      return '<tr data-id="' + t.id + '">' + t.cells.map(function(v, i){ return cellHTML(v, i, kinds[i]); }).join('') +
         '<td>' + esc(t.assignee) + '</td><td>' + fmtDay(t.assignedAt) + '</td><td>' + sessionLabel(t.sessionId) + '</td>' +
         '<td class="no-print"><button class="del restore" type="button" title="Remettre dans la session en cours" aria-label="Remettre dans la session en cours">↩</button></td></tr>';
     }).join('') : '<tr><td colspan="' + (state.columns.length + 4) + '" class="empty" style="padding:20px;white-space:normal">' +
       (state.archive.length ? 'Aucun ticket archivé ne correspond aux filtres.' : 'Aucun ticket archivé. Les tickets arrivent ici quand vous cliquez sur « Valider la session ».') + '</td></tr>';
   }
-  ['arSearch', 'arSession', 'arPerson'].forEach(function(id){
+  ['arSearch', 'arSession'].forEach(function(id){
     $(id).addEventListener(id === 'arSearch' ? 'input' : 'change', renderArchive);
   });
   $('arTable').tBodies[0].addEventListener('click', function(e){
@@ -1366,22 +1828,6 @@ td input[type=date]{padding:4px 8px}
     a.download = 'affectation-tickets-' + isoDay(new Date()) + '.json';
     a.click();
     setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
-  });
-  $('importJsonBtn').addEventListener('click', function(){ $('jsonFile').click(); });
-  $('jsonFile').addEventListener('change', function(){
-    var file = this.files[0]; if (!file) return;
-    var reader = new FileReader();
-    reader.onload = function(){
-      try {
-        var s = JSON.parse(reader.result);
-        if (!s || !Array.isArray(s.tickets)) throw new Error();
-        if (!confirm('Remplacer toutes les données de la base, pour tous les utilisateurs, par celles du fichier ?')) return;
-        replaceAll(s, 'sauvegarde_restauree');
-        $('tableMsg').innerHTML = '<strong>Sauvegarde restaurée.</strong>';
-      } catch(e){ $('tableMsg').textContent = 'Fichier invalide.'; }
-    };
-    reader.readAsText(file);
-    this.value = '';
   });
   $('clearBtn').addEventListener('click', function(){
     if (!state.tickets.length || !isAdmin()) return;
@@ -1495,7 +1941,7 @@ td input[type=date]{padding:4px 8px}
   $('tab-archive').tabIndex = -1;
   $('tab-stats').tabIndex = -1;
 
-  function renderAll(){ renderRole(); renderModel(); renderPeople(); renderDateCol(); renderTickets(); renderStats(); renderBanner(); renderArchive(); renderSessions(); renderUndo(); }
+  function renderAll(){ renderRole(); renderModel(); renderPeople(); renderTickets(); renderStats(); renderBanner(); renderArchive(); renderSessions(); renderUndo(); }
 
   /* ---------- Rôle de l'utilisateur ---------- */
   function renderRole(){
@@ -1716,7 +2162,7 @@ td input[type=date]{padding:4px 8px}
     d = d || {};
     switch (a){
       case 'import': return plural(d.ajoutes || 0, 'ticket ajouté', 'tickets ajoutés') + (d.mis_a_jour ? ', ' + d.mis_a_jour + ' mis à jour' : '');
-      case 'session_validee': return plural(d.tickets || 0, 'ticket archivé', 'tickets archivés');
+      case 'session_validee': return plural(d.tickets || 0, 'ticket archivé', 'tickets archivés') + (d.non_affectes_retires ? ', ' + plural(d.non_affectes_retires, 'non affecté retiré', 'non affectés retirés') : '');
       case 'session_supprimee': return 'session du ' + fmtDateTime(d.at) + ' · ' + plural(d.tickets || 0, 'ticket', 'tickets');
       case 'modele_modifie': return (d.colonnes || []).join(' · ');
       case 'tickets_vides': return plural(d.tickets || 0, 'ticket', 'tickets');
