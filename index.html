@@ -73,9 +73,6 @@ section{margin-bottom:64px}
 }
 .gear-btn:hover{color:var(--text)}
 .gear-btn[hidden]{display:none}
-.sync{font-size:12px;color:var(--muted);background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:5px 10px}
-.sync.err{color:var(--danger);border-color:var(--danger)}
-.sync[hidden]{display:none}
 .err-text{color:var(--danger)}
 body:not(.is-admin) .admin-only{display:none!important}
 body.is-admin .user-only{display:none!important}
@@ -93,8 +90,10 @@ body.is-admin .user-only{display:none!important}
 .auth-form .link-btn{justify-self:start;font-size:13px;font-weight:500}
 
 /* Compte et journal dans le panneau des paramètres */
-.account{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
-.account strong{display:block;font-size:14px;font-weight:600;overflow-wrap:anywhere}
+/* Adresse sur toute la largeur, bouton de déconnexion en dessous */
+.account{display:flex;flex-direction:column;align-items:flex-start;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.account>div{width:100%;min-width:0}
+.account strong{display:block;font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .account span{font-size:12.5px;color:var(--muted)}
 .account .btn{font-size:12.5px;padding:5px 10px;flex:none}
 .drawer-kicker{margin-top:28px}
@@ -104,6 +103,26 @@ body.is-admin .user-only{display:none!important}
 .audit-list li{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
 .audit-list strong{font-weight:600}
 .audit-when{display:block;color:var(--muted);font-size:11.5px}
+.drawer-links{display:flex;gap:14px}
+/* Fenêtre du journal complet : filtres, tableau triable avec défilement vertical */
+.modal.audit-modal{width:min(980px,100%);height:calc(100vh - 32px);display:flex;flex-direction:column;overflow:hidden}
+.audit-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.audit-head h2{margin-bottom:12px}
+.audit-filters{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 14px;margin-bottom:12px}
+.audit-filters label{display:grid;gap:4px;font-size:12px;font-weight:500;color:var(--muted)}
+.audit-filters input,.audit-filters select{font-size:13px;padding:0 9px;height:34px;box-sizing:border-box}
+.audit-filters select{padding-right:28px;max-width:240px}
+.audit-filters .link-btn{font-size:12.5px;padding-bottom:8px}
+.audit-scroll{flex:1;min-height:0;overflow-y:auto;border:1px solid var(--line);border-radius:12px}
+.audit-table{width:100%;border-collapse:collapse;font-size:13px}
+.audit-table th{position:sticky;top:0;z-index:1;background:var(--surface-2);text-align:left;padding:8px 10px;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);box-shadow:inset 0 -1px 0 var(--line);white-space:nowrap}
+.audit-table th.sortable{cursor:pointer;user-select:none}
+.audit-table td{padding:7px 10px;border-top:1px solid var(--line);vertical-align:top}
+.audit-table tbody tr:first-child td{border-top:0}
+.audit-table td:nth-child(1),.audit-table td:nth-child(2){white-space:nowrap}
+.audit-table td:nth-child(1),.audit-table td:nth-child(3){color:var(--muted)}
+.audit-table td:nth-child(2){font-weight:600}
+.audit-table td:nth-child(4){overflow-wrap:anywhere}
 .gear-btn svg{transition:transform .4s ease}
 .gear-btn:hover svg{transform:rotate(60deg)}
 
@@ -195,7 +214,29 @@ textarea{width:100%;min-height:130px;resize:vertical;font-size:13px;font-family:
 .msg{font-size:14px;color:var(--muted);min-height:21px;margin:10px 0 0}
 .msg strong{color:var(--text);font-weight:600}
 #tableMsg:empty,#undoBar:empty,#arMsg:empty,#takenMsg:empty{display:none}
-.validate-stack{display:inline-flex;flex-direction:column;align-items:stretch;gap:6px}
+.validate-stack{display:inline-flex;flex-direction:column;align-items:flex-end;gap:6px}
+/* Ligne au-dessus de « Valider la session » : bouton mail puis notification à sa droite.
+   Largeur nulle : son contenu déborde vers la gauche sans élargir le bloc ni décaler les autres boutons. */
+.mail-row{display:flex;justify-content:flex-end;align-items:center;gap:8px;width:0}
+.mail-row>*{flex:none;white-space:nowrap}
+.mail-row:not(:has(>:not([hidden]))){display:none}
+/* Notification « Session validée » : cercle et coche qui se dessinent, puis elle se replie */
+.save-toast{display:flex;align-items:center;gap:7px;white-space:nowrap;overflow:hidden;max-width:420px;
+  background:color-mix(in srgb,#1f9d55 12%,var(--surface));color:var(--text);border:1px solid color-mix(in srgb,#1f9d55 40%,var(--line));border-radius:999px;padding:5px 12px 5px 7px;
+  font-size:12.5px;font-weight:600;animation:toast-in .35s cubic-bezier(.2,.9,.3,1.3)}
+.save-toast[hidden]{display:none}
+.save-toast.out{animation:toast-out .35s ease forwards}
+.save-toast svg{flex:none;fill:none;stroke:#1f9d55;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.save-toast .t-ring{stroke-dasharray:63;stroke-dashoffset:63;animation:draw .45s ease .1s forwards}
+.save-toast .t-check{stroke-dasharray:16;stroke-dashoffset:16;animation:draw .3s ease .5s forwards}
+@keyframes toast-in{from{opacity:0;transform:translateX(10px) scale(.92)}}
+@keyframes toast-out{to{opacity:0;max-width:0;padding-left:0;padding-right:0;border-width:0;margin-left:-8px}}
+@keyframes draw{to{stroke-dashoffset:0}}
+/* Apparition du bouton mail : il glisse en place puis pulse deux fois */
+.mail-btn.pop{animation:mail-in .45s cubic-bezier(.2,.9,.3,1.4),mail-pulse 1.2s ease .5s 2}
+@keyframes mail-in{from{opacity:0;transform:translateY(10px) scale(.9)}}
+@keyframes mail-pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 45%,transparent)}100%{box-shadow:0 0 0 12px transparent}}
+@media (prefers-reduced-motion:reduce){.save-toast,.save-toast.out,.save-toast .t-ring,.save-toast .t-check,.mail-btn.pop{animation:none;stroke-dashoffset:0}}
 .mail-btn{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);font-size:13px;padding:6px 12px}
 .mail-btn:hover{background:var(--accent);color:#fff}
 .mail-btn[hidden]{display:none}
@@ -203,6 +244,10 @@ textarea{width:100%;min-height:130px;resize:vertical;font-size:13px;font-family:
 .mail-form label{display:grid;gap:4px;font-size:12.5px;font-weight:500;color:var(--muted)}
 .mail-form input,.mail-form textarea{font-size:13px;padding:6px 9px;font-family:inherit;min-height:0}
 .session-actions{display:inline-flex;gap:6px;flex:none}
+/* Type de session : tickets affectés (bleu) ou tickets pris (doré), comme dans les archives */
+.session-item .ses-kind{display:inline-block;margin-bottom:3px;padding:1px 8px;border-radius:999px;font-size:10.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.session-item .ses-kind.aff{background:var(--accent-soft);color:var(--accent)}
+.session-item .ses-kind.taken{background:var(--gold-soft);color:var(--gold)}
 
 /* Personnes */
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;padding:0;list-style:none}
@@ -638,7 +683,6 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
 </head>
 <body>
 <div class="top-actions">
-  <span class="sync" id="syncState" hidden></span>
   <button class="theme-toggle" id="themeToggle" type="button">Thème sombre</button>
   <button class="gear-btn" id="gearBtn" type="button" hidden aria-label="Paramètres" title="Paramètres" aria-haspopup="dialog" aria-controls="settingsOverlay">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.830 2.830l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.650 1.650 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.830-2.830l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.830-2.830l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.830 2.830l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -673,15 +717,9 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
 
     <div class="drawer-row">
       <p class="kicker" style="margin:0">Journal des actions</p>
-      <button class="link-btn" id="auditRefresh" type="button">Actualiser</button>
+      <span class="drawer-links"><button class="link-btn" id="auditRefresh" type="button">Actualiser</button><button class="link-btn" id="auditAll" type="button">Tout voir</button></span>
     </div>
     <ul class="audit-list" id="auditList"></ul>
-
-    <div id="legacyBox" hidden>
-      <p class="kicker drawer-kicker">Ancienne version</p>
-      <p class="help" id="legacyInfo"></p>
-      <button class="btn" id="legacyBtn" type="button" style="margin-top:10px">Envoyer ces données dans la base</button>
-    </div>
   </aside>
 </div>
 
@@ -708,6 +746,34 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
 <div class="auth" id="loadingScreen"><p class="lede">Chargement…</p></div>
 
 <div id="app" hidden>
+<div class="modal-overlay no-print" id="auditOverlay" hidden>
+  <div class="modal audit-modal" role="dialog" aria-modal="true" aria-labelledby="auditTitle">
+    <div class="audit-head">
+      <h2 id="auditTitle">Journal des actions</h2>
+      <button class="link-btn" id="auditClose" type="button">Fermer</button>
+    </div>
+    <div class="audit-filters">
+      <label>Du <input type="date" id="auditFrom"></label>
+      <label>Au <input type="date" id="auditTo"></label>
+      <label>Type <select id="auditType"></select></label>
+      <label>Auteur <select id="auditUser"></select></label>
+      <button class="link-btn" id="auditReset" type="button">Effacer les filtres</button>
+    </div>
+    <p class="help" id="auditCount" style="margin:0 0 8px"></p>
+    <div class="audit-scroll">
+      <table class="audit-table">
+        <thead><tr>
+          <th class="sortable" data-sort="at" tabindex="0">Date<span class="sort-ind"></span></th>
+          <th class="sortable" data-sort="type" tabindex="0">Type<span class="sort-ind"></span></th>
+          <th class="sortable" data-sort="user" tabindex="0">Auteur<span class="sort-ind"></span></th>
+          <th>Détail</th>
+        </tr></thead>
+        <tbody id="auditBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay no-print" id="modalOverlay" hidden>
   <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalBody">
     <h2 id="modalTitle"></h2>
@@ -750,7 +816,10 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
           <button class="btn" id="toggleImport" type="button" aria-expanded="false" aria-controls="importPanel">Importer depuis Excel</button>
           <button class="btn danger admin-only" id="clearBtn" type="button">Vider les tickets</button>
           <span class="validate-stack">
-            <button class="btn mail-btn" id="mailOutlook" type="button" hidden>✉ Ouvrir le mail dans Outlook</button>
+            <span class="mail-row">
+              <button class="btn mail-btn" id="mailOutlook" type="button" hidden>✉ Ouvrir le mail dans Outlook</button>
+              <span class="save-toast" id="saveToast" role="status" aria-live="polite" hidden><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle class="t-ring" cx="12" cy="12" r="10"/><path class="t-check" d="M7 12.5l3.2 3.2L17 9"/></svg><span id="saveToastText"></span></span>
+            </span>
             <button class="btn success" id="validateBtn" type="button" title="Archive les tickets affectés et vide la session">Valider la session</button>
           </span>
         </div>
@@ -804,11 +873,6 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
         <div class="row" style="flex-wrap:nowrap;flex:1 1 auto">
           <input type="search" id="search" placeholder="Rechercher…">
           <button class="btn primary no-print" style="white-space:nowrap" id="addTicketBtn" type="button" aria-expanded="false">Saisir un ticket</button>        </div>
-        <div class="row">
-          <label class="check"><input type="checkbox" id="onlyUnassigned"> Non affectés uniquement</label>
-          <select id="filterPerson" hidden></select>
-          <button type="button" class="filter-btn" id="filterPersonBtn" aria-haspopup="listbox" aria-expanded="false">Toutes les personnes</button>
-        </div>
       </div>
       <div class="pole-legend" style="margin:14px 0 -2px"></div>
       <div class="table-wrap tickets-wrap">
@@ -1017,7 +1081,6 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
   var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4eGFuc3htZmt1bWFvZm9ia3VlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxOTIxNzYsImV4cCI6MjEwODc2ODE3Nn0.KcsWgmcHdOgctVPmA_BS4_7mSPIRWKmYZCUdou64wpM';
 
   /* ---------- Données ---------- */
-  var LEGACY_KEY = 'affectation-tickets-v1'; // ancienne version, données gardées dans le navigateur
   var UNDO_KEY = 'affectation-undo-v2';
   function defaults(){ return { columns: [], required: [], tickets: [], archive: [], sessions: [], people: [], taken: [], dateCol: -1, poles: {} }; }
   // Session en cours + tickets archivés : base des statistiques
@@ -1400,7 +1463,8 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
   function clearUndo(){ try { localStorage.removeItem(undoKey()); } catch(e){} }
   var UNDO_LABELS = {
     session: ['Annuler la validation', 'cette validation de session', 'Validation annulée : les tickets, affectés ou non, sont revenus dans la session en cours.'],
-    'delete-session': ['Annuler la suppression', 'cette suppression de session', 'Suppression annulée : la session est de nouveau dans les archives.']
+    'delete-session': ['Annuler la suppression', 'cette suppression de session', 'Suppression annulée : la session est de nouveau dans les archives.'],
+    'delete-taken': ['Annuler la suppression', 'cette suppression d\'import de tickets pris', 'Suppression annulée : les tickets pris sont de nouveau dans les archives.']
   };
   function renderUndo(){
     var u = loadUndo();
@@ -1610,11 +1674,6 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
             '<button type="button" data-i="' + i + '" aria-label="Retirer ' + esc(p) + '">×</button></li>';
         }).join('')
       : '<li class="empty">Ajoutez les personnes qui pourront recevoir des tickets.</li>';
-    var fp = $('filterPerson'), cur = fp.value;
-    fp.innerHTML = '<option value="">Toutes les personnes</option>' +
-      allPeople().map(function(p){ return '<option>' + esc(p) + '</option>'; }).join('');
-    fp.value = cur; if (fp.value !== cur) fp.value = '';
-    renderFilterButton('filterPerson', 'filterPersonBtn');
     $('polesMissing').hidden = !db || peopleExtra;
     document.querySelectorAll('.pole-legend').forEach(function(el){ if (!el.innerHTML) el.innerHTML = poleLegendHTML(); });
   }
@@ -1744,12 +1803,8 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
   function renderTickets(){
     var table = $('ticketTable');
     renderAddRow();
-    renderFilterButton('filterPerson', 'filterPersonBtn');
     var q = $('search').value.trim().toLowerCase();
-    var only = $('onlyUnassigned').checked, who = $('filterPerson').value;
     var rows = state.tickets.filter(function(t){
-      if (only && t.assignee) return false;
-      if (who && t.assignee !== who) return false;
       if (q && (t.cells.join(' ') + ' ' + t.assignee).toLowerCase().indexOf(q) < 0) return false;
       return true;
     });
@@ -2060,7 +2115,6 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
     btn.innerHTML = v ? avatarHTML(v, 'xs') + esc(v) : 'Toutes les personnes';
     btn.title = v ? 'Filtré sur ' + v : 'Filtrer par personne';
   }
-  filterButton('filterPerson', 'filterPersonBtn', allPeople, sessionLoad, 'Tickets affectés dans la session en cours', renderTickets);
   filterButton('arPerson', 'arPersonBtn', function(){
     var list = [];
     state.archive.forEach(function(t){ if (t.assignee && list.indexOf(t.assignee) < 0) list.push(t.assignee); });
@@ -2116,9 +2170,7 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
       state.tickets.splice(i, 1); save(); audit('ticket_supprime', { ticket: t.cells[0] }); renderTickets(); renderStats(); renderBanner();
     });
   });
-  ['search', 'onlyUnassigned'].forEach(function(id){
-    $(id).addEventListener(id === 'search' ? 'input' : 'change', renderTickets);
-  });
+  $('search').addEventListener('input', renderTickets);
 
   /* ---------- Import ---------- */
   function setImportOpen(open){
@@ -2339,7 +2391,22 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
     saveUndo(inv, 'session', 'Session validée le {date} : <strong>' + plural(done.length, 'ticket archivé', 'tickets archivés') + '</strong>' + (rest.length ? ', ' + plural(rest.length, 'non affecté retiré', 'non affectés retirés') : '') + '.');
     $('tableMsg').textContent = '';
     renderAll();
-    showMailBar(ses.id);
+    whenSaved(function(){
+      showToast('Session validée · ' + plural(done.length, 'ticket archivé', 'tickets archivés'));
+      showMailBar(ses.id, true);
+    });
+  }
+  // Notification brève sous « Valider la session »
+  var toastTimer = null;
+  function showToast(text){
+    var el = $('saveToast');
+    clearTimeout(toastTimer);
+    $('saveToastText').textContent = text;
+    el.hidden = true; el.classList.remove('out'); void el.offsetWidth; el.hidden = false; // relance l'animation
+    toastTimer = setTimeout(function(){
+      el.classList.add('out');
+      toastTimer = setTimeout(function(){ el.hidden = true; el.classList.remove('out'); }, 300);
+    }, 3200);
   }
 
   /* ---------- Mail de fin de session (Outlook) ---------- */
@@ -2375,9 +2442,12 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
   }
   function addressList(v){ return String(v || '').split(/[;,]/).map(function(a){ return a.trim(); }).filter(Boolean); }
 
-  // Corps du mail en HTML : texte d'introduction, tableau des tickets, puis un espace avant la signature
+  // Corps du mail en HTML : texte d'introduction, tableau des tickets
   function mailHTML(id){
-    var m = mailSettings(), tickets = sessionTickets(id);
+    // Regroupé par personne affectée (ordre alphabétique) ; l'ordre d'arrivée est gardé pour chaque personne
+    var m = mailSettings(), tickets = sessionTickets(id).slice().sort(function(a, b){
+      return (a.assignee || '').localeCompare(b.assignee || '', 'fr', { sensitivity: 'base' });
+    });
     var td = 'border:1px solid #d0d5e0;padding:5px 9px;vertical-align:top;';
     var intro = esc(fillMailText(m.intro, id)).replace(/\n/g, '<br>');
     var head = state.columns.concat(['Affectation']).map(function(c){
@@ -2391,7 +2461,6 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
     return '<div style="font-family:Calibri,\'Segoe UI\',Arial,sans-serif;font-size:11pt;color:#141a2a;">' +
       '<p>' + intro + '</p>' +
       '<table style="border-collapse:collapse;font-size:10pt;">' + '<thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table>' +
-      '<p>&nbsp;</p>' +
       '</div>';
   }
 
@@ -2417,10 +2486,12 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
   }
 
   // Bouton « Ouvrir le mail dans Outlook », affiché au-dessus de « Valider la session » après une validation
-  function showMailBar(id){
+  function showMailBar(id, animate){
     mailSessionId = id;
     var btn = $('mailOutlook');
     btn.hidden = !id;
+    btn.classList.remove('pop');
+    if (id && animate){ void btn.offsetWidth; btn.classList.add('pop'); }
     if (id) btn.title = 'Mail de la session du ' + sessionLabel(id) + ' (' + plural(sessionTickets(id).length, 'ticket', 'tickets') + ')';
   }
   $('mailOutlook').addEventListener('click', function(){ if (mailSessionId) mailDraft(mailSessionId); });
@@ -2437,17 +2508,38 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
   $('settingsOverlay').addEventListener('click', function(e){ if (e.target === this) setSettingsOpen(false); });
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !$('settingsOverlay').hidden) setSettingsOpen(false); });
 
+  // Imports de tickets pris, regroupés comme dans les archives (même date d'import à la minute près)
+  function takenImports(){
+    var groups = {};
+    state.taken.forEach(function(t){
+      var k = takenSession(t), g = groups[k] = groups[k] || { key: k, at: t.importedAt, n: 0, people: {} };
+      g.n++; g.people[t.person] = (g.people[t.person] || 0) + 1;
+    });
+    return groups;
+  }
+  function whoSummary(people){
+    return Object.keys(people).sort(function(a, b){ return people[b] - people[a]; })
+      .map(function(p){ return esc(p) + ' ' + people[p]; }).join(', ');
+  }
   function renderSessions(){
     var byS = {};
     state.archive.forEach(function(t){
       var s = byS[t.sessionId] = byS[t.sessionId] || { n: 0, people: {} };
       s.n++; s.people[t.assignee] = (s.people[t.assignee] || 0) + 1;
     });
-    $('sessionList').innerHTML = state.sessions.length ? state.sessions.slice().reverse().map(function(s){
-      var info = byS[s.id] || { n: 0, people: {} };
-      var who = Object.keys(info.people).sort(function(a, b){ return info.people[b] - info.people[a]; })
-        .map(function(p){ return esc(p) + ' ' + info.people[p]; }).join(', ');
-      return '<li class="session-item"><div><strong>' + fmtDateTime(s.at) + '</strong><span>' + plural(info.n, 'ticket', 'tickets') + (who ? ' · ' + who : '') + '</span></div>' +
+    var items = state.sessions.map(function(s){ return { kind: 'aff', at: s.at, s: s }; });
+    var imports = takenImports();
+    Object.keys(imports).forEach(function(k){ items.push({ kind: 'taken', at: imports[k].at || '', g: imports[k] }); });
+    items.sort(function(a, b){ return (b.at || '').localeCompare(a.at || ''); });
+    $('sessionList').innerHTML = items.length ? items.map(function(it){
+      if (it.kind === 'taken'){
+        var g = it.g, tw = whoSummary(g.people);
+        return '<li class="session-item"><div><span class="ses-kind taken">Tickets pris</span><strong>' + (g.at ? fmtDateTime(g.at) : 'Date inconnue') + '</strong>' +
+          '<span>' + plural(g.n, 'ticket', 'tickets') + (tw ? ' · ' + tw : '') + '</span></div>' +
+          '<span class="session-actions">' + (isAdmin() ? '<button class="btn danger" type="button" data-taken-import="' + esc(g.key) + '">Supprimer</button>' : '') + '</span></li>';
+      }
+      var s = it.s, info = byS[s.id] || { n: 0, people: {} }, who = whoSummary(info.people);
+      return '<li class="session-item"><div><span class="ses-kind aff">Tickets affectés</span><strong>' + fmtDateTime(s.at) + '</strong><span>' + plural(info.n, 'ticket', 'tickets') + (who ? ' · ' + who : '') + '</span></div>' +
         '<span class="session-actions"><button class="btn" type="button" data-mail="' + s.id + '" title="Préparer le mail de cette session">Mail</button>' +
         (isAdmin() ? '<button class="btn danger" type="button" data-session="' + s.id + '">Supprimer</button>' : '') + '</span></li>';
     }).join('') : '<li class="empty" style="font-size:13px">Aucune session enregistrée pour l\'instant.</li>';
@@ -2455,6 +2547,8 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
   $('sessionList').addEventListener('click', function(e){
     var mb = e.target.closest('[data-mail]');
     if (mb){ setSettingsOpen(false); selectTab($('tab-tickets')); mailDraft(mb.dataset.mail); return; }
+    var tb = e.target.closest('[data-taken-import]');
+    if (tb && isAdmin()){ deleteTakenImport(tb.dataset.takenImport); return; }
     var b = e.target.closest('[data-session]'); if (!b || !isAdmin()) return;
     var id = b.dataset.session, label = sessionLabel(id);
     var n = state.archive.filter(function(t){ return t.sessionId === id; }).length;
@@ -2472,6 +2566,24 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
       renderAll();
     });
   });
+  function deleteTakenImport(key){
+    var g = takenImports()[key]; if (!g) return;
+    var label = g.at ? fmtDateTime(g.at) : 'date inconnue';
+    askConfirm({
+      title: 'Supprimer cet import de tickets pris ?',
+      html: modalItem('Tickets pris importés le ' + label, plural(g.n, 'ticket pris', 'tickets pris')) +
+        '<p class="modal-note">Ces tickets sont retirés des archives des tickets pris et ne sont plus comptabilisés dans les statistiques. ' +
+        'Un ticket mis à jour par un import plus récent reste rattaché à son premier import. Vous pourrez annuler juste après depuis l\'onglet Tickets.</p>',
+      confirmLabel: 'Supprimer l\'import', tone: 'danger'
+    }).then(function(ok){
+      if (!ok) return;
+      state.taken = state.taken.filter(function(t){ return takenSession(t) !== key; });
+      var inv = save();
+      audit('import_pris_supprime', { at: g.at, tickets: g.n });
+      saveUndo(inv, 'delete-taken', 'Import de tickets pris du ' + label + ' supprimé le {date} : <strong>' + plural(g.n, 'ticket retiré', 'tickets retirés') + '</strong>.');
+      renderAll();
+    });
+  }
 
   /* ---------- Archives ---------- */
   // Tickets archivés filtrés : session la plus récente en premier, sauf tri choisi par l'utilisateur
@@ -3020,8 +3132,7 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
   /* ---------- Rôle de l'utilisateur ---------- */
   function renderRole(){
     document.body.classList.toggle('is-admin', isAdmin());
-    if (me){ $('meEmail').textContent = me.email; $('meRole').textContent = isAdmin() ? 'Administrateur' : 'Utilisateur'; }
-    renderLegacy();
+    if (me){ $('meEmail').textContent = me.email; $('meEmail').title = me.email; $('meRole').textContent = isAdmin() ? 'Administrateur' : 'Utilisateur'; }
   }
 
   /* ---------- Synchronisation avec Supabase ---------- */
@@ -3047,6 +3158,7 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
   }
   function takenRow(t){
     var row = { id: t.id, person: t.person, taken_on: t.takenOn, label: t.label || null };
+    if (t.importedAt) row.created_at = t.importedAt; // date d'import : garde le regroupement par import (annulation comprise)
     if (takenExtra){ row.pole = t.pole || null; row.organisation = t.org || null; row.requester = t.requester || null; }
     return row;
   }
@@ -3138,24 +3250,21 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
     }
   }
   function enqueue(task){
-    pending++; setSync('saving');
+    pending++;
     queue = queue.then(task).then(function(){
-      if (--pending === 0) setSync('ok');
+      if (--pending === 0 && afterSave){ var fn = afterSave; afterSave = null; fn(); }
     }, function(err){
-      pending--;
+      pending--; afterSave = null;
       console.error(err);
-      setSync('error');
       $('tableMsg').innerHTML = '<span class="err-text">' + (err && err.code === '42501'
         ? 'Action refusée : vos droits ne le permettent pas.'
         : 'Une modification n\'a pas pu être enregistrée (connexion perdue ?).') + ' Les données ont été rechargées depuis la base.</span>';
       return reloadAll();
     });
   }
-  function setSync(st){
-    var el = $('syncState');
-    el.classList.toggle('err', st === 'error');
-    el.textContent = st === 'saving' ? 'Enregistrement…' : st === 'error' ? 'Erreur d\'enregistrement' : 'Enregistré';
-  }
+  // Action à lancer une fois la base à jour (notification de session validée…) ; abandonnée en cas d'erreur
+  var afterSave = null;
+  function whenSaved(fn){ if (db && pending) afterSave = fn; else fn(); }
 
   async function fetchAll(table, order){
     var out = [];
@@ -3267,11 +3376,11 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
       .then(function(res){ if (res.error) console.error(res.error); });
   }
   var AUDIT_LABELS = {
-    'import': 'Import', tickets_pris_importes: 'Tickets pris importés', session_validee: 'Session validée', session_supprimee: 'Session supprimée',
+    'import': 'Import', tickets_pris_importes: 'Tickets pris importés', session_validee: 'Session validée', session_supprimee: 'Session supprimée', import_pris_supprime: 'Import de tickets pris supprimé',
     modele_modifie: 'Modèle de colonnes modifié', tickets_vides: 'Tickets vidés', sauvegarde_restauree: 'Sauvegarde restaurée',
     donnees_locales_envoyees: 'Données de l\'ancienne version envoyées', annulation: 'Annulation',
     ticket_supprime: 'Ticket supprimé', ticket_desarchive: 'Ticket remis en session', ticket_ajoute: 'Ticket ajouté',
-    personne_ajoutee: 'Personne ajoutée', personne_retiree: 'Personne retirée'
+    personne_ajoutee: 'Personne ajoutée', personne_retiree: 'Personne retirée', poles_modifies: 'Pôle modifié'
   };
   function auditText(a, d){
     d = d || {};
@@ -3282,64 +3391,114 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
       case 'modele_modifie': return (d.colonnes || []).join(' · ');
       case 'tickets_vides': return plural(d.tickets || 0, 'ticket', 'tickets');
       case 'tickets_pris_importes': return plural(d.tickets || 0, 'ticket', 'tickets');
+      case 'import_pris_supprime': return 'import du ' + fmtDateTime(d.at) + ' · ' + plural(d.tickets || 0, 'ticket', 'tickets');
       case 'sauvegarde_restauree': case 'donnees_locales_envoyees':
         return plural(d.tickets || 0, 'ticket en cours', 'tickets en cours') + ', ' + plural(d.archives || 0, 'archivé', 'archivés');
       case 'annulation': return d.operation || '';
       case 'ticket_supprime': case 'ticket_desarchive': case 'ticket_ajoute': return d.ticket || '';
       case 'personne_ajoutee': case 'personne_retiree': return d.nom || '';
+      case 'poles_modifies': return (d.nom || '') + ((d.poles || []).length ? ' · ' + d.poles.join(', ') : ' · sans pôle');
       default: return '';
     }
   }
+  function auditLabel(a){ return AUDIT_LABELS[a] || a; }
+  // Panneau des paramètres : les dix dernières actions seulement
   async function renderAudit(){
     var list = $('auditList');
     list.innerHTML = '<li class="empty">Chargement…</li>';
-    var res = await db.from('audit_log').select('*').order('at', { ascending: false }).limit(100);
+    var res = await db.from('audit_log').select('*').order('at', { ascending: false }).limit(10);
     if (res.error){ list.innerHTML = '<li class="empty">Journal indisponible.</li>'; return; }
     list.innerHTML = res.data.length ? res.data.map(function(e){
       var txt = auditText(e.action, e.details);
       return '<li><span class="audit-when">' + fmtDateTime(e.at) + ' · ' + esc(e.user_email || '?') + '</span>' +
-        '<strong>' + esc(AUDIT_LABELS[e.action] || e.action) + '</strong>' + (txt ? ' — ' + esc(txt) : '') + '</li>';
+        '<strong>' + esc(auditLabel(e.action)) + '</strong>' + (txt ? ' — ' + esc(txt) : '') + '</li>';
     }).join('') : '<li class="empty">Aucune action enregistrée.</li>';
   }
   $('auditRefresh').addEventListener('click', renderAudit);
 
-  /* ---------- Reprise des données de l'ancienne version (navigateur) ---------- */
-  function legacyData(){
-    try { var s = JSON.parse(localStorage.getItem(LEGACY_KEY)); return s && Array.isArray(s.tickets) ? s : null; } catch(e){ return null; }
+  /* ---------- Journal complet (fenêtre) : filtres par date, type et auteur, tri par colonne ---------- */
+  var auditAll = [], auditSort = { key: 'at', dir: -1 }, auditReturnFocus = null;
+  async function loadAuditAll(){
+    var rows = [], page = 1000;
+    for (var from = 0; ; from += page){ // la base renvoie au plus 1000 lignes par requête
+      var res = await db.from('audit_log').select('*').order('at', { ascending: false }).range(from, from + page - 1);
+      if (res.error) throw res.error;
+      rows = rows.concat(res.data);
+      if (res.data.length < page) return rows;
+    }
   }
-  function renderLegacy(){
-    var s = isAdmin() && legacyData();
-    $('legacyBox').hidden = !s;
-    if (s) $('legacyInfo').textContent = 'Ce navigateur contient des données de l\'ancienne version, sans connexion : ' +
-      plural(s.tickets.length, 'ticket en cours', 'tickets en cours') + ', ' + plural((s.archive || []).length, 'ticket archivé', 'tickets archivés') + '.';
+  function fillAuditSelect(id, values, allLabel, labelOf){
+    var sel = $(id), cur = sel.value;
+    sel.innerHTML = '<option value="">' + allLabel + '</option>' + values.map(function(v){
+      return '<option value="' + esc(v) + '">' + esc(labelOf ? labelOf(v) : v) + '</option>';
+    }).join('');
+    sel.value = values.indexOf(cur) >= 0 ? cur : '';
   }
-  function replaceAll(s, action){
-    var keepTaken = state.taken;
-    state = normalize(JSON.parse(JSON.stringify(s)));
-    state.taken = keepTaken;
-    save(); clearUndo();
-    audit(action, { tickets: state.tickets.length, archives: state.archive.length });
-    renderAll(); if (pv) buildPreview();
-  }
-  $('legacyBtn').addEventListener('click', function(){
-    var s = legacyData(); if (!s || !isAdmin()) return;
-    var empty = !state.columns.length && !allTickets().length && !state.sessions.length;
-    askConfirm({
-      title: 'Envoyer les données de ce navigateur ?',
-      html: '<div class="modal-stats">' +
-          '<div><span class="modal-num">' + s.tickets.length + '</span><span>tickets en cours</span></div>' +
-          '<div><span class="modal-num">' + (s.archive || []).length + '</span><span>tickets archivés</span></div>' +
-        '</div>' +
-        '<p class="modal-note">' + (empty ? 'Ces données seront envoyées dans la base partagée.'
-          : '<strong>La base contient déjà des données : elles seront remplacées, pour tous les utilisateurs, par celles de ce navigateur.</strong>') + '</p>',
-      confirmLabel: empty ? 'Envoyer' : 'Remplacer la base', tone: empty ? 'primary' : 'danger'
-    }).then(function(ok){
-      if (!ok) return;
-      replaceAll(s, 'donnees_locales_envoyees');
-      try { localStorage.setItem(LEGACY_KEY + '-envoye', localStorage.getItem(LEGACY_KEY)); localStorage.removeItem(LEGACY_KEY); } catch(e){}
-      renderLegacy();
-      $('tableMsg').innerHTML = '<strong>Données de l\'ancienne version envoyées dans la base.</strong>';
+  function renderAuditAll(){
+    var from = $('auditFrom').value, to = $('auditTo').value, type = $('auditType').value, user = $('auditUser').value;
+    var rows = auditAll.filter(function(e){
+      var day = isoDay(new Date(e.at));
+      return (!from || day >= from) && (!to || day <= to) && (!type || e.action === type) && (!user || (e.user_email || '?') === user);
     });
+    var k = auditSort.key, dir = auditSort.dir;
+    var val = function(e){ return k === 'at' ? e.at : k === 'type' ? auditLabel(e.action) : (e.user_email || '?'); };
+    rows.sort(function(a, b){
+      var c = k === 'at' ? (a.at < b.at ? -1 : a.at > b.at ? 1 : 0) : val(a).localeCompare(val(b), 'fr', { sensitivity: 'base' });
+      return c * dir || (a.at < b.at ? 1 : -1);
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('.audit-table th[data-sort]'), function(th){
+      var on = th.dataset.sort === k;
+      th.setAttribute('aria-sort', on ? (dir > 0 ? 'ascending' : 'descending') : 'none');
+      th.querySelector('.sort-ind').textContent = on ? (dir > 0 ? '▲' : '▼') : '';
+    });
+    $('auditCount').textContent = rows.length === auditAll.length ? plural(rows.length, 'action', 'actions')
+      : plural(rows.length, 'action', 'actions') + ' sur ' + auditAll.length;
+    $('auditBody').innerHTML = rows.length ? rows.map(function(e){
+      return '<tr><td>' + fmtDateTime(e.at) + '</td><td>' + esc(auditLabel(e.action)) + '</td><td>' + esc(e.user_email || '?') + '</td><td>' + esc(auditText(e.action, e.details)) + '</td></tr>';
+    }).join('') : '<tr><td colspan="4" class="empty" style="padding:20px">Aucune action ne correspond aux filtres.</td></tr>';
+  }
+  async function openAuditAll(){
+    auditReturnFocus = document.activeElement;
+    $('auditOverlay').hidden = false;
+    $('auditBody').innerHTML = '<tr><td colspan="4" class="empty" style="padding:20px">Chargement…</td></tr>';
+    $('auditCount').textContent = '';
+    $('auditClose').focus();
+    try { auditAll = await loadAuditAll(); }
+    catch(e){ $('auditBody').innerHTML = '<tr><td colspan="4" class="empty" style="padding:20px">Journal indisponible.</td></tr>'; return; }
+    var uniq = function(a){ return a.filter(function(v, i){ return a.indexOf(v) === i; }); };
+    fillAuditSelect('auditType', uniq(auditAll.map(function(e){ return e.action; }))
+      .sort(function(a, b){ return auditLabel(a).localeCompare(auditLabel(b), 'fr'); }), 'Tous les types', auditLabel);
+    fillAuditSelect('auditUser', uniq(auditAll.map(function(e){ return e.user_email || '?'; }))
+      .sort(function(a, b){ return a.localeCompare(b, 'fr'); }), 'Tous les auteurs');
+    renderAuditAll();
+  }
+  function closeAuditAll(){
+    $('auditOverlay').hidden = true;
+    if (auditReturnFocus && document.body.contains(auditReturnFocus)) auditReturnFocus.focus();
+  }
+  $('auditAll').addEventListener('click', openAuditAll);
+  $('auditClose').addEventListener('click', closeAuditAll);
+  $('auditOverlay').addEventListener('mousedown', function(e){ if (e.target === this) closeAuditAll(); });
+  $('auditOverlay').addEventListener('keydown', function(e){
+    if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); closeAuditAll(); }
+  });
+  ['auditFrom', 'auditTo', 'auditType', 'auditUser'].forEach(function(id){ $(id).addEventListener('change', renderAuditAll); });
+  $('auditReset').addEventListener('click', function(){
+    $('auditFrom').value = $('auditTo').value = $('auditType').value = $('auditUser').value = '';
+    renderAuditAll();
+  });
+  // Tri : un clic sur un en-tête trie la colonne, un second clic inverse l'ordre
+  function sortAudit(th){
+    var k = th.dataset.sort;
+    auditSort = auditSort.key === k ? { key: k, dir: -auditSort.dir } : { key: k, dir: k === 'at' ? -1 : 1 };
+    renderAuditAll();
+  }
+  document.querySelector('.audit-table thead').addEventListener('click', function(e){
+    var th = e.target.closest('th[data-sort]'); if (th) sortAudit(th);
+  });
+  document.querySelector('.audit-table thead').addEventListener('keydown', function(e){
+    var th = e.target.closest('th[data-sort]');
+    if (th && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); sortAudit(th); }
   });
 
   /* ---------- Connexion ---------- */
@@ -3347,7 +3506,7 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
     $('authScreen').hidden = screen !== 'auth';
     $('loadingScreen').hidden = screen !== 'loading';
     $('app').hidden = screen !== 'app';
-    $('gearBtn').hidden = $('syncState').hidden = screen !== 'app';
+    $('gearBtn').hidden = screen !== 'app';
   }
   function authMsg(text, isErr){ var m = $('authMsg'); m.textContent = text || ''; m.classList.toggle('err-text', !!isErr); }
   function showLogin(text, isErr){
@@ -3372,7 +3531,7 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
       }
       me = { id: user.id, email: m.email || user.email, role: m.role };
       await loadAll();
-      renderAll(); setSync('ok'); show('app');
+      renderAll(); show('app');
       subscribe();
     } catch(err){
       console.error(err);
