@@ -248,6 +248,9 @@ th.sortable:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .col-grip{position:absolute;top:0;right:0;width:9px;height:100%;cursor:col-resize;z-index:2;touch-action:none}
 .col-grip::after{content:"";position:absolute;top:22%;bottom:22%;right:0;width:2px;border-radius:2px;background:var(--line);transition:background .15s}
 .col-grip:hover::after,.col-grip.on::after{background:var(--accent)}
+/* Bouton discret en fin d'en-tête : ajuster toutes les colonnes */
+.fit-cols{border:1px solid color-mix(in srgb,var(--accent) 45%,transparent);background:var(--accent-soft);color:var(--accent);cursor:pointer;border-radius:6px;padding:0 8px;font-size:15px;font-weight:700;line-height:22px;transition:background .15s,color .15s}
+.fit-cols:hover,.fit-cols:focus-visible{background:var(--accent);color:#fff}
 body.col-resizing,body.col-resizing *{cursor:col-resize!important;user-select:none!important}
 /* Largeurs choisies : disposition fixe, le contenu trop long est coupé avec « … » */
 #ticketTable.cols-fixed{table-layout:fixed}
@@ -255,6 +258,11 @@ body.col-resizing,body.col-resizing *{cursor:col-resize!important;user-select:no
 #ticketTable.cols-fixed th{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #ticketTable.cols-fixed .assign{width:100%}
 #ticketTable.cols-fixed .c-tag{max-width:100%!important}
+/* Mesure de l'ajustement au contenu (double-clic) : rien n'est coupé ni replié */
+#ticketTable.col-measure{table-layout:auto!important;width:auto!important}
+#ticketTable.col-measure td,#ticketTable.col-measure th{white-space:nowrap!important;min-width:0!important;max-width:none!important}
+#ticketTable.col-measure .assign{width:auto!important}
+#ticketTable.col-measure .c-tag{max-width:none!important}
 #ticketTable th,#arTable th,#arTakenTable th{position:sticky;top:0;z-index:1;padding:9px 10px;box-shadow:inset 0 -1px 0 var(--line);border-bottom:0}
 #ticketTable td,#arTable td,#arTakenTable td{padding:8px 10px;line-height:1.4}
 /* Archives : tickets pris par les consultants */
@@ -795,8 +803,7 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
       <div class="toolbar">
         <div class="row" style="flex-wrap:nowrap;flex:1 1 auto">
           <input type="search" id="search" placeholder="Rechercher…">
-          <button class="btn primary no-print" style="white-space:nowrap" id="addTicketBtn" type="button" aria-expanded="false">Saisir un ticket</button>
-        </div>
+          <button class="btn primary no-print" style="white-space:nowrap" id="addTicketBtn" type="button" aria-expanded="false">Saisir un ticket</button>        </div>
         <div class="row">
           <label class="check"><input type="checkbox" id="onlyUnassigned"> Non affectés uniquement</label>
           <select id="filterPerson" hidden></select>
@@ -1371,8 +1378,9 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
         state.tickets.push(t); byKey[r.key] = t; added++;
       }
     });
-    // Pas d'annulation proposée : les tickets restent dans la session en cours, « Vider les tickets » suffit
-    save();
+    // Pas d'annulation proposée : les tickets restent dans la session en cours, « Vider les tickets » suffit.
+    // Une nouvelle session commence : le bandeau d'annulation de la précédente validation disparaît.
+    save(); clearUndo();
     audit('import', { ajoutes: added, mis_a_jour: updated });
     $('pasteArea').value = '';
     pv = null; renderPreview();
@@ -1756,20 +1764,19 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
     var kinds = columnKinds();
     var emptyText = state.tickets.length ? 'Aucun ticket ne correspond aux filtres.' : 'Aucun ticket dans la session en cours. Cliquez sur « Importer depuis Excel » pour en ajouter.';
     table.tHead.innerHTML = '<tr>' + state.columns.map(function(c, i){ return sortTh('tickets', i, c); }).join('') +
-      sortTh('tickets', 'assignee', 'Affectation') + '<th class="no-print"></th></tr>';
+      sortTh('tickets', 'assignee', 'Affectation') +
+      '<th class="no-print"><button class="fit-cols" type="button" title="Ajuster toutes les colonnes à leur contenu" aria-label="Ajuster toutes les colonnes à leur contenu">↔</button></th></tr>';
     table.tBodies[0].innerHTML = rows.length ? rows.map(function(t){
       return '<tr data-id="' + t.id + '"' + (t.assignee ? '' : ' class="unassigned"') + '>' +
         t.cells.map(function(v, i){ return cellHTML(v, i, kinds[i]); }).join('') +
         assignHTML(t.assignee) +
         '<td class="no-print"><button class="del" type="button" title="Supprimer ce ticket" aria-label="Supprimer">×</button></td></tr>';
     }).join('') : '<tr><td colspan="' + (state.columns.length + 2) + '" class="empty" style="padding:20px;white-space:normal">' + emptyText + '</td></tr>';
-    // Une poignée sur chaque bordure entre deux colonnes ; la bordure suit la souris et seule la colonne élastique compense.
-    // À gauche de l'élastique, la poignée règle la colonne de gauche ; à droite, celle de droite.
-    var flex = flexCol(), ths = table.tHead.rows[0].cells;
+    // Comme dans Excel : une poignée au bord droit de chaque colonne (sauf la colonne de suppression), qui ne règle que cette colonne
+    var ths = table.tHead.rows[0].cells;
     Array.prototype.forEach.call(ths, function(th, i){
-      if (i >= ths.length - 2) return; // pas de bordure utile avant la colonne de suppression
-      var target = i < flex ? i : i + 1, dir = i < flex ? 1 : -1;
-      th.insertAdjacentHTML('beforeend', '<span class="col-grip" data-col="' + target + '" data-dir="' + dir + '" title="Glisser pour déplacer la bordure · double-clic : largeurs automatiques" aria-hidden="true"></span>');
+      if (i >= ths.length - 1) return;
+      th.insertAdjacentHTML('beforeend', '<span class="col-grip" data-col="' + i + '" title="Glisser pour régler la largeur · double-clic : ajuster au contenu" aria-hidden="true"></span>');
     });
     applyColWidths();
   }
@@ -1784,14 +1791,8 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
   function saveColWidths(w){
     try { if (w) localStorage.setItem(COLW_KEY, JSON.stringify({ key: colKey(), widths: w })); else localStorage.removeItem(COLW_KEY); } catch(e){}
   }
-  // Colonne élastique : Sujet (ou à défaut la dernière colonne de données). Elle prend toute la largeur
-  // restante, sans descendre sous FLEX_MIN ; au-delà, le tableau défile horizontalement.
-  var FLEX_MIN = 300;
-  function flexCol(){
-    var kinds = columnKinds(), i = kinds.indexOf('wide');
-    if (i < 0) i = kinds.indexOf('long');
-    return i < 0 ? state.columns.length - 1 : i;
-  }
+  // Sans largeurs enregistrées, le tableau remplit la fenêtre (largeurs automatiques). Dès qu'une colonne est réglée,
+  // chaque colonne garde sa largeur : le tableau s'allonge (défilement horizontal) ou laisse un vide à droite.
   function applyColWidths(w){
     updateVw();
     var table = $('ticketTable'), head = table.tHead.rows[0];
@@ -1803,27 +1804,31 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
       return;
     }
     if (!cg){ cg = document.createElement('colgroup'); table.insertBefore(cg, table.firstChild); }
-    var flex = flexCol(), fixed = 0;
+    // La colonne de suppression (dernière) n'a pas de largeur : elle occupe le vide à droite pour que les lignes aillent jusqu'au bord
+    var last = w.length - 1, sum = 48;
     cg.innerHTML = w.map(function(x, i){
-      if (i === flex) return '<col>';
-      fixed += x; return '<col style="width:' + x + 'px">';
+      if (i === last) return '<col>';
+      sum += x; return '<col style="width:' + x + 'px">';
     }).join('');
     table.classList.add('cols-fixed');
-    table.style.width = 'max(100%, ' + (fixed + FLEX_MIN) + 'px)';
+    table.style.width = 'max(100%, ' + sum + 'px)';
+  }
+  // Largeurs actuelles : celles enregistrées, sinon celles affichées (figées à la première retouche)
+  function currentColWidths(){
+    return loadColWidths() || Array.prototype.map.call($('ticketTable').tHead.rows[0].cells, function(th){ return Math.round(th.getBoundingClientRect().width); });
   }
   var colDrag = null, colJustDragged = false; // colDrag : { i, x, start, widths, grip }
   $('ticketTable').addEventListener('pointerdown', function(e){
     var g = e.target.closest('.col-grip'); if (!g) return;
     e.preventDefault(); e.stopPropagation();
-    // Première poignée utilisée : on fige les largeurs affichées
-    var widths = loadColWidths() || Array.prototype.map.call(this.tHead.rows[0].cells, function(th){ return Math.round(th.getBoundingClientRect().width); });
-    colDrag = { i: +g.dataset.col, dir: +g.dataset.dir || 1, x: e.clientX, start: widths[+g.dataset.col], widths: widths, grip: g };
+    var widths = currentColWidths();
+    colDrag = { i: +g.dataset.col, x: e.clientX, start: widths[+g.dataset.col], widths: widths, grip: g };
     g.classList.add('on'); document.body.classList.add('col-resizing');
     applyColWidths(widths);
   });
   document.addEventListener('pointermove', function(e){
     if (!colDrag) return;
-    colDrag.widths[colDrag.i] = Math.max(48, Math.round(colDrag.start + colDrag.dir * (e.clientX - colDrag.x)));
+    colDrag.widths[colDrag.i] = Math.max(40, Math.round(colDrag.start + e.clientX - colDrag.x));
     applyColWidths(colDrag.widths);
   });
   document.addEventListener('pointerup', function(){
@@ -1833,12 +1838,31 @@ input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hove
     colDrag = null;
     colJustDragged = true; setTimeout(function(){ colJustDragged = false; }, 0); // le clic qui suit le relâchement ne trie pas
   });
-  // Un clic sur la poignée ne trie pas la colonne ; un double-clic revient aux largeurs automatiques
+  // Un clic sur la poignée ne trie pas la colonne ; un double-clic ajuste la colonne à son contenu le plus long
   $('ticketTable').addEventListener('click', function(e){ if (colJustDragged || e.target.closest('.col-grip')) e.stopPropagation(); }, true);
   $('ticketTable').addEventListener('dblclick', function(e){
-    if (!e.target.closest('.col-grip')) return;
-    saveColWidths(null); applyColWidths();
+    var g = e.target.closest('.col-grip'); if (g) fitColumns([+g.dataset.col]);
   });
+  // Bouton ↔ en fin d'en-tête : ajuste toutes les colonnes sauf celle de suppression
+  $('ticketTable').addEventListener('click', function(e){
+    if (!e.target.closest('.fit-cols')) return;
+    var n = this.tHead.rows[0].cells.length;
+    fitColumns(Array.from({ length: n - 1 }, function(_, i){ return i; }));
+  });
+  // Ajuste les colonnes données à leur contenu le plus long (entre 40 et 800 px)
+  function fitColumns(cols){
+    var table = $('ticketTable'), widths = currentColWidths();
+    var cg = table.querySelector('colgroup'); if (cg) cg.remove(); // les largeurs fixées fausseraient la mesure
+    table.classList.add('col-measure');
+    var fit = cols.map(function(){ return 0; });
+    Array.prototype.forEach.call(table.rows, function(r){
+      if (r.cells.length !== widths.length) return;
+      cols.forEach(function(i, k){ fit[k] = Math.max(fit[k], Math.ceil(r.cells[i].getBoundingClientRect().width)); });
+    });
+    table.classList.remove('col-measure');
+    cols.forEach(function(i, k){ widths[i] = Math.min(800, Math.max(40, fit[k] + 2)); });
+    saveColWidths(widths); applyColWidths(widths);
+  }
   // Largeur visible de la fenêtre, sans la barre de défilement verticale
   function updateVw(){ document.documentElement.style.setProperty('--vw', document.documentElement.clientWidth + 'px'); }
   updateVw(); window.addEventListener('resize', updateVw);
