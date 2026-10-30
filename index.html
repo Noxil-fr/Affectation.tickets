@@ -59,6 +59,7 @@ h1{font-size:clamp(26px,4vw,34px);font-weight:600;letter-spacing:-.01em;margin:0
 h2{font-size:20px;font-weight:600;margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 h3{font-size:14px;font-weight:600;color:var(--muted);margin:0 0 12px}
 section{margin-bottom:64px}
+#arSessions,#arTaken{margin-bottom:12px}
 .kicker{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 12px}
 .tag{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--surface-2);color:var(--muted)}
 .section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
@@ -142,7 +143,20 @@ body.is-admin .user-only{display:none!important}
   background:linear-gradient(135deg,var(--accent-soft),transparent 140%),var(--surface);
   border-left:3px solid var(--accent);border-radius:4px 12px 12px 4px;padding:8px 0;box-shadow:var(--shadow);
 }
-.banner-item{padding:0 16px;border-left:1px solid var(--line);min-width:0}
+.banner-item{position:relative;padding:0 16px;border-left:1px solid var(--line);min-width:0;cursor:default}
+.banner-item:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.banner-pop{
+  position:absolute;top:calc(100% + 12px);right:0;z-index:20;min-width:220px;max-height:320px;overflow:auto;
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;
+  box-shadow:0 8px 28px rgba(20,26,42,.16);
+  opacity:0;visibility:hidden;transform:translateY(-4px);transition:opacity .15s,transform .15s,visibility .15s;
+}
+.banner-item:hover .banner-pop,.banner-item:focus .banner-pop{opacity:1;visibility:visible;transform:none}
+.banner-pop table{font-size:13px}
+.banner-pop td{padding:4px 0;border-bottom:1px solid var(--line)}
+.banner-pop tr:last-child td{border-bottom:0}
+.banner-pop td + td{text-align:right;font-weight:600;padding-left:16px;color:var(--accent)}
+.banner-pop p:not(.modal-kicker){font-size:13px;color:var(--muted);margin:0}
 .banner-item:first-child{border-left:0}
 .banner-num{font-size:18px;font-weight:600;line-height:1.2;color:var(--accent)}
 .banner-label{font-size:13px;font-weight:500}
@@ -180,7 +194,7 @@ textarea{width:100%;min-height:130px;resize:vertical;font-size:13px;font-family:
 .check{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--muted);cursor:pointer}
 .msg{font-size:14px;color:var(--muted);min-height:21px;margin:10px 0 0}
 .msg strong{color:var(--text);font-weight:600}
-#tableMsg:empty,#undoBar:empty,#arMsg:empty{display:none}
+#tableMsg:empty,#undoBar:empty,#arMsg:empty,#takenMsg:empty{display:none}
 .validate-stack{display:inline-flex;flex-direction:column;align-items:stretch;gap:6px}
 .mail-btn{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);font-size:13px;padding:6px 12px}
 .mail-btn:hover{background:var(--accent);color:#fff}
@@ -201,6 +215,7 @@ textarea{width:100%;min-height:130px;resize:vertical;font-size:13px;font-family:
 .chip button{width:18px;height:18px;font-size:13px}
 .chips .empty{font-size:12.5px}
 #personForm input,#personForm .btn{font-size:12.5px;padding:5px 8px}
+#personForm select{font-size:12.5px;padding:5px 26px 5px 8px;background-position:right 9px center}
 
 /* Tableau des tickets */
 .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;margin-top:14px;background:var(--surface);box-shadow:var(--shadow)}
@@ -222,13 +237,28 @@ th.sortable{cursor:pointer;user-select:none}
 th.sortable:hover,th.sortable[aria-sort="ascending"],th.sortable[aria-sort="descending"]{color:var(--text)}
 th.sortable:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 .sort-ind{display:inline-block;min-width:12px;margin-left:4px;font-size:9px;color:var(--accent)}
-#ticketTable td.narrow,#arTable td.narrow{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#ticketTable td.narrow,#arTable td.narrow,#arTakenTable td.narrow{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Lecture des tableaux de tickets */
 .tickets-wrap{max-height:calc(100vh - 160px);overflow:auto}
+/* Onglet Tickets : le tableau sort de la colonne centrale et prend toute la largeur de la fenêtre.
+   --vw = largeur visible sans la barre de défilement (mise à jour en JS). */
+#panel-tickets .tickets-wrap{width:calc(var(--vw, 100vw) - 32px);margin-left:calc((100% - var(--vw, 100vw)) / 2 + 16px)}
+/* Colonnes redimensionnables : poignée au bord droit de chaque en-tête */
+#ticketTable th{position:sticky}
+.col-grip{position:absolute;top:0;right:0;width:9px;height:100%;cursor:col-resize;z-index:2;touch-action:none}
+.col-grip::after{content:"";position:absolute;top:22%;bottom:22%;right:0;width:2px;border-radius:2px;background:var(--line);transition:background .15s}
+.col-grip:hover::after,.col-grip.on::after{background:var(--accent)}
+body.col-resizing,body.col-resizing *{cursor:col-resize!important;user-select:none!important}
+/* Largeurs choisies : disposition fixe, le contenu trop long est coupé avec « … » */
+#ticketTable.cols-fixed{table-layout:fixed}
+#ticketTable.cols-fixed td{min-width:0!important;max-width:none!important;overflow:hidden;text-overflow:ellipsis}
+#ticketTable.cols-fixed th{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#ticketTable.cols-fixed .assign{width:100%}
+#ticketTable.cols-fixed .c-tag{max-width:100%!important}
 #ticketTable th,#arTable th,#arTakenTable th{position:sticky;top:0;z-index:1;padding:9px 10px;box-shadow:inset 0 -1px 0 var(--line);border-bottom:0}
 #ticketTable td,#arTable td,#arTakenTable td{padding:8px 10px;line-height:1.4}
 /* Archives : tickets pris par les consultants */
-#arSessions[hidden],#arTaken[hidden],#arSessionsWrap[hidden],#arTakenWrap[hidden],#arSession[hidden],#arTakenSession[hidden]{display:none}
+#arSessions[hidden],#arTaken[hidden],#arSessionsWrap[hidden],#arTakenWrap[hidden],#arSessionBox[hidden],#arTakenSessionBox[hidden]{display:none}
 #arTakenTable{font-size:12.5px}
 #arTakenTable th{font-size:11px;letter-spacing:.04em}
 #arTakenTable tbody tr:nth-child(even) td{background:color-mix(in srgb,var(--surface-2) 45%,var(--surface))}
@@ -238,6 +268,7 @@ td.c-id{font-weight:600;color:var(--text);white-space:nowrap}
 td.c-date{color:var(--muted);white-space:nowrap}
 td.c-long{white-space:normal}
 .clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.c-tag.has-pole{background:color-mix(in srgb,var(--pc) 16%,var(--surface));color:color-mix(in srgb,var(--pc) 72%,var(--text))}
 .c-tag{display:inline-block;max-width:180px;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;padding:1px 9px;border-radius:999px;background:var(--surface-2);color:var(--muted);font-size:11.5px;font-weight:500;white-space:nowrap}
 #ticketTable .del{opacity:0;transition:opacity .15s}
 #ticketTable tr:hover .del,#ticketTable .del:focus-visible{opacity:1}
@@ -256,11 +287,14 @@ td.c-long{white-space:normal}
 }
 /* Ligne d'ajout manuel : collée en bas du tableau pendant le défilement */
 #ticketTable tfoot td{position:sticky;bottom:0;z-index:1;padding:8px 6px;background:var(--accent-soft);background-color:color-mix(in srgb,var(--accent) 8%,var(--surface));border-top:2px solid var(--accent);border-bottom:0;vertical-align:middle}
-#ticketTable tfoot input,#ticketTable tfoot select{width:100%;min-width:90px;font-size:12.5px;padding:5px 8px;background:var(--surface)}
+#ticketTable tfoot input,#ticketTable tfoot select{width:100%;min-width:90px;font-size:12.5px;padding:5px 8px;background-color:var(--surface)}
 #ticketTable tfoot .bad{border-color:var(--danger);outline:2px solid var(--danger-soft)}
+#ticketTable tfoot select{padding-right:26px;background-position:right 9px center}
 #ticketTable tfoot .btn{font-size:12.5px;padding:5px 12px;white-space:nowrap}
 #ticketTable .assign.is-set{border-color:transparent;background-color:var(--accent-soft);color:var(--accent)}
+#ticketTable .assign.is-set.has-pole{background-color:color-mix(in srgb,var(--pc) 16%,var(--surface));color:color-mix(in srgb,var(--pc) 72%,var(--text))}
 #ticketTable .assign:hover,#ticketTable .assign[aria-expanded="true"]{border-color:var(--accent)}
+#ticketTable .assign.has-pole:hover,#ticketTable .assign.has-pole[aria-expanded="true"]{border-color:var(--pc)}
 #ticketTable .assign:focus-visible{outline:2px solid var(--accent-soft);border-color:var(--accent)}
 
 .filter-btn{
@@ -308,12 +342,31 @@ td.c-long{white-space:normal}
 /* Menu de choix de la personne */
 .picker{position:fixed;z-index:30;width:270px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px;box-shadow:0 1px 2px rgba(20,26,42,.06),0 12px 32px rgba(20,26,42,.16)}
 .picker[hidden]{display:none}
+/* Menus de choix d'une session (Archives) */
+.opt-box{position:relative;display:inline-flex}
+.opt-pop{
+  position:absolute;top:calc(100% + 6px);right:0;z-index:30;min-width:100%;width:max-content;max-width:320px;max-height:320px;overflow:auto;
+  list-style:none;margin:0;padding:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  box-shadow:0 1px 2px rgba(20,26,42,.06),0 12px 32px rgba(20,26,42,.16);animation:fade .12s ease;
+}
+.opt-pop[hidden]{display:none}
+.opt-pop:focus{outline:none}
+.opt-pop li[role=option]{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;font-size:13.5px;cursor:pointer;white-space:nowrap}
+.opt-pop li[role=option]:hover,.opt-pop li.active{background:var(--surface-2)}
+.opt-pop li[aria-selected="true"]{color:var(--accent);font-weight:600}
+.opt-pop .opt-name{flex:1}
+.opt-pop .opt-count{font-size:12px;font-weight:500;color:var(--muted);background:var(--surface-2);border-radius:999px;padding:1px 8px}
+.opt-pop li.active .opt-count,.opt-pop li[role=option]:hover .opt-count{background:var(--surface)}
+.opt-pop .picker-check{width:14px;text-align:right;color:var(--accent)}
+.opt-pop li.picker-sep{height:1px;margin:4px 6px;background:var(--line)}
 .picker-search{width:100%;font-size:13px;padding:7px 10px;margin-bottom:6px}
 .picker-list{list-style:none;margin:0;padding:0;max-height:min(460px,calc(100vh - 140px));overflow-y:auto}
 .picker-list li{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;font-size:13px}
 .picker-list li.active{background:var(--surface-2)}
 .picker-list li[aria-selected="true"]{font-weight:600}
 .picker-list li.picker-sep{height:1px;padding:0;margin:4px 6px;background:var(--line);cursor:default}
+.picker-list li.picker-group{gap:0;cursor:default;padding:10px 8px 4px;margin-top:2px;border-top:1px solid var(--line);border-radius:0;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:color-mix(in srgb,var(--pc) 75%,var(--text))}
+.picker-list li.picker-group:first-child{border-top:0;padding-top:4px;margin-top:0}
 .avatar.sm{width:24px;height:24px;font-size:10px;flex:none}
 .avatar.none{background:var(--gold-soft);color:var(--gold)}
 .picker-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -335,16 +388,7 @@ td select{min-width:160px;padding:5px 8px}
 td input[type=date]{padding:4px 8px}
 .del{border:0;background:transparent;color:var(--muted);cursor:pointer;border-radius:8px;padding:4px 8px;font-size:15px}
 .del:hover{background:var(--surface-2);color:#d64545}
-.menu-wrap{position:relative}
-.menu{
-  position:absolute;right:0;top:calc(100% + 6px);z-index:15;min-width:200px;
-  background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px;
-  box-shadow:0 1px 2px rgba(20,26,42,.06),0 12px 32px rgba(20,26,42,.14);
-}
-.menu[hidden]{display:none}
-.menu button{display:block;width:100%;text-align:left;border:0;background:transparent;border-radius:8px;padding:8px 12px;font-size:14px;cursor:pointer}
-.menu button:hover,.menu button:focus-visible{background:var(--surface-2);outline:none}
-@media (max-width:600px){.menu{right:auto;left:0}}
+.order-note{display:block;margin-top:8px;font-weight:600;color:var(--text)}
 .order-hint{background:var(--gold-soft);border-left:3px solid var(--gold);border-radius:4px 10px 10px 4px;padding:10px 12px;margin-bottom:12px;font-size:13px}
 .order-title{display:block;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);margin-bottom:6px}
 .order-list{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px;counter-reset:col}
@@ -352,6 +396,22 @@ td input[type=date]{padding:4px 8px}
 .order-list li::before{content:counter(col);display:inline-grid;place-items:center;width:18px;height:18px;margin-right:6px;border-radius:50%;background:var(--gold);color:#fff;font-size:11px;font-weight:600}
 .import-panel{margin-bottom:24px}
 .import-panel[hidden]{display:none}
+/* Panneau principal de l'import : plus large, bordure et fond bleutés ; modèle et personnes en retrait */
+.import-grid{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr);align-items:stretch}
+/* Personnes : même hauteur que les autres panneaux (elle ne compte pas dans la hauteur de la ligne), liste défilante */
+.people-card{display:flex;flex-direction:column;height:0;min-height:max(100%,260px)}
+.people-card > :not(.chips){flex:none}
+.people-card .chips{flex:1 1 auto;min-height:60px;overflow-y:auto;align-content:flex-start;padding-right:4px}
+@media (max-width:640px){.people-card{height:auto;min-height:0}.people-card .chips{max-height:240px}}
+@media (max-width:1000px){.import-grid{grid-template-columns:1fr 1fr}.import-grid .import-main{grid-column:1/-1}}
+@media (max-width:640px){.import-grid{grid-template-columns:1fr}}
+.import-main{border:1px solid var(--accent);box-shadow:0 0 0 3px var(--accent-soft),var(--shadow);background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 6%,var(--surface)),var(--surface) 60%)}
+.import-main h3{color:var(--accent);font-size:16px;display:flex;align-items:center;gap:8px}
+.import-main h3::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--accent)}
+.import-main textarea{min-height:170px;border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+.import-grid .card:not(.import-main){background:var(--surface-2);border-color:transparent;box-shadow:none}
+.import-grid .card:not(.import-main) h3{font-size:13px}
+.import-grid .card:not(.import-main) .chip{background:var(--surface)}
 .preview-card{margin-top:16px}
 .preview-card[hidden]{display:none}
 .btn:disabled{opacity:.45;cursor:not-allowed;filter:none}
@@ -384,7 +444,7 @@ td input[type=date]{padding:4px 8px}
 #pvTable th,#pvTable td{padding:5px 8px}
 #pvTable thead tr:first-child th{font-size:11px;letter-spacing:.04em}
 #pvTable thead tr + tr th{text-transform:none;letter-spacing:0;font-weight:500;padding-top:0}
-#pvTable select{font-size:12px;padding:3px 6px;min-width:140px}
+#pvTable select{font-size:12px;padding:3px 26px 3px 8px;min-width:140px;background-position:right 9px center}
 #pvTable th.bad select{border-color:var(--danger);outline:2px solid var(--danger-soft)}
 #pvTable td.ignored{opacity:.35}
 #pvTable tr.r-skip td:not(:first-child){opacity:.45}
@@ -398,24 +458,50 @@ td input[type=date]{padding:4px 8px}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
 .toolbar input[type=search]{flex:1 1 220px;max-width:340px}
 
+/* Pôles des consultants : couleur des bulles */
+:root{--pole-apv:#3567e0;--pole-tech:#0d9488;--pole-vnvo:#e0691b;--pole-compta:#c43d7c;--pole-manager:#5b6478;--pole-ink:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--pole-apv:#7ea2ff;--pole-tech:#3fcfbd;--pole-vnvo:#ff9b5e;--pole-compta:#ff7fb4;--pole-manager:#b4bdd0;--pole-ink:#0f131c}}
+:root[data-theme="dark"]{--pole-apv:#7ea2ff;--pole-tech:#3fcfbd;--pole-vnvo:#ff9b5e;--pole-compta:#ff7fb4;--pole-manager:#b4bdd0;--pole-ink:#0f131c}
+.avatar.has-pole,.stat-card .rank-row .avatar.has-pole{background:color-mix(in srgb,var(--pc) 20%,var(--surface));color:color-mix(in srgb,var(--pc) 72%,var(--text));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--pc) 30%,transparent)}
+.who.has-pole{background:color-mix(in srgb,var(--pc) 14%,var(--surface));color:var(--text);border:0;padding-left:8px}
+.who.has-pole::before,.pole-dot{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--pbg);margin-right:6px;vertical-align:1px;flex:none}
+.pole-legend{display:flex;flex-wrap:wrap;align-items:center;gap:4px 14px;font-size:12px;color:var(--muted);margin:0 0 12px}
+.pole-legend .pl-title{font-weight:600;text-transform:uppercase;letter-spacing:.06em;font-size:11px}
+.pole-legend span{display:inline-flex;align-items:center}
+/* Choix des pôles : création d'une personne et menu d'une puce */
+.pole-pick{display:flex;flex-wrap:wrap;gap:6px;width:100%}
+.pole-pick label{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:12.5px;padding:3px 10px 3px 8px;border-radius:999px;border:1px solid var(--line);background:var(--surface);user-select:none}
+.pole-pick input{position:absolute;opacity:0;pointer-events:none}
+.pole-pick label:has(input:checked){border-color:var(--pc);background:color-mix(in srgb,var(--pc) 14%,var(--surface));font-weight:600}
+.pole-pick label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:1px}
+.pole-pick .pole-dot{margin:0;--pbg:var(--pc)}
+.chip .chip-name{border:0;background:transparent;font:inherit;color:inherit;cursor:pointer;padding:0;display:inline-flex;align-items:center;width:auto;height:auto;border-radius:0}
+.chip .chip-name:hover{background:transparent;text-decoration:underline}
+.chip .chip-name .pole-dot{margin-right:5px}
+.chip .chip-name .pole-dot.none{background:transparent;box-shadow:inset 0 0 0 1px var(--muted)}
+.pole-pop{position:fixed;z-index:30;width:220px;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(20,26,42,.16);animation:fade .12s ease}
+.pole-pop[hidden]{display:none}
+.pole-pop .pole-pick{flex-direction:column}
+
 /* Classement */
 .ranking{list-style:none;margin:0;padding:0}
 .rank-row{
-  display:grid;grid-template-columns:24px 36px minmax(110px,190px) 1fr 40px;align-items:center;gap:10px;
+  display:grid;grid-template-columns:36px minmax(110px,190px) 1fr 40px;align-items:center;gap:10px;
   padding:7px 8px;border-radius:10px;
 }
-.rank-row.hl{background:var(--accent-soft);font-weight:600}
-.rank-n{font-size:13px;color:var(--muted)}
 .avatar{width:32px;height:32px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;font-size:12px;font-weight:700}
-.rank-row.hl .avatar{background:var(--accent);color:#fff}
+/* Podium : fond léger, sans numéro ; le 1er un peu plus marqué */
+.ranking-split .rank-row.p1{background:color-mix(in srgb,var(--gold) 16%,var(--surface))}
+.ranking-split .rank-row.p2{background:color-mix(in srgb,var(--muted) 10%,var(--surface))}
+.ranking-split .rank-row.p3{background:color-mix(in srgb,#c07a45 10%,var(--surface))}
+.rank-row.p1 .rank-name,.rank-row.p1 .rank-score{font-weight:700}
 .rank-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
 .rank-score{text-align:right;font-size:14px}
 .track{height:10px;background:var(--surface-2);border-radius:999px;overflow:hidden}
 .ranking .track{height:8px}
 .fill{height:100%;width:0;background:var(--bar-other);border-radius:999px;transition:width 1s cubic-bezier(.2,.8,.2,1)}
-.hl .fill{background:var(--accent)}
 @media (max-width:600px){
-  .rank-row{grid-template-columns:24px 36px 1fr 40px}
+  .rank-row{grid-template-columns:36px 1fr 40px}
   .rank-row .track{display:none}
 }
 
@@ -424,6 +510,7 @@ td input[type=date]{padding:4px 8px}
 .year-table th:first-child,.year-table td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1;padding-left:14px}
 .year-table th:first-child{background:var(--surface-2)}
 .year-table td:first-child{font-weight:600}
+.yt-person{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
 .year-table tbody tr:hover td{box-shadow:inset 0 9999px 0 rgba(127,127,127,.06)}
 /* Case : total du mois en gros, détail affectés + pris en dessous ; fond violet selon le volume (--h de 0 à 1) */
 .yc{background:color-mix(in srgb,var(--violet) calc(var(--h,0) * 30%),transparent)}
@@ -443,9 +530,7 @@ td input[type=date]{padding:4px 8px}
 .yc-sample small{font-size:10.5px}
 
 .view-switch{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;margin:-6px 0 8px}
-.vs-right{justify-self:end}
-.vs-right .btn{font-size:13px;padding:6px 12px}
-@media (max-width:640px){.view-switch{grid-template-columns:1fr}.view-switch>span:first-child{display:none}.vs-right{justify-self:center}}
+@media (max-width:640px){.view-switch{grid-template-columns:1fr}.view-switch>span:first-child{display:none}}
 .taken-panel{margin-bottom:20px}
 .taken-panel[hidden]{display:none}
 .taken-map{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:12px 0}
@@ -462,11 +547,11 @@ td input[type=date]{padding:4px 8px}
 #takenPreview[hidden]{display:none}
 .muted-text{color:var(--muted)}
 .legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12px;color:var(--muted);margin:-6px 0 12px}
-.fill.split,.hl .fill.split{display:flex;background:transparent}
+.fill.split{display:flex;background:transparent}
 .seg{display:block;height:100%}
 .seg.aff{background:var(--accent)}
 .seg.self{background:var(--gold)}
-.ranking-split .rank-row{grid-template-columns:24px 36px minmax(110px,190px) 1fr 64px}
+.ranking-split .rank-row{grid-template-columns:36px minmax(110px,190px) 1fr 64px}
 /* Volets des statistiques : une couleur par volet */
 .stat-card{--c:var(--accent);--c-soft:var(--accent-soft);border-top:4px solid var(--c)}
 .stat-card.self{--c:var(--gold);--c-soft:var(--gold-soft)}
@@ -474,18 +559,49 @@ td input[type=date]{padding:4px 8px}
 .stat-card h3{display:flex;align-items:center;gap:8px;color:var(--c);font-size:15px}
 .stat-card h3::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--c)}
 .stat-card h3 .tag{margin-left:auto;font-size:14px;padding:3px 12px;background:var(--c-soft);color:var(--c)}
-.stat-card .rank-row.hl{background:var(--c-soft)}
-.stat-card .rank-row.hl .avatar{background:var(--c);color:#fff}
 .stat-card .fill:not(.split){background:var(--c);opacity:.4}
-.stat-card .hl .fill:not(.split){opacity:1}
+.stat-card .p1 .fill:not(.split){opacity:.7}
 .ranking-split .rank-score small{display:block;font-size:11px;font-weight:400;color:var(--muted)}
 .n-aff{color:var(--accent);font-weight:600}
 .n-self{color:var(--gold);font-weight:600}
-@media (max-width:600px){.ranking-split .rank-row{grid-template-columns:24px 36px 1fr 56px}}
+@media (max-width:600px){.ranking-split .rank-row{grid-template-columns:36px 1fr 56px}}
 .view-switch .tab{padding:7px 28px}
 .view-switch .tab[aria-pressed="true"]{background:var(--surface);color:var(--text);box-shadow:var(--shadow)}
+/* Archives : Tickets affectés (bleu) / Tickets pris (doré) */
+.ar-switch{padding:5px;gap:6px}
+.ar-switch .tab{display:inline-flex;align-items:center;gap:9px;padding:8px 24px;--c:var(--accent);--c-soft:var(--accent-soft);transition:background .15s,color .15s,box-shadow .15s}
+.ar-switch .tab[data-arview="taken"]{--c:var(--gold);--c-soft:var(--gold-soft)}
+.ar-switch .tab::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--c);opacity:.35;transition:opacity .15s,transform .15s}
+.ar-switch .tab:hover{color:var(--text)}
+.ar-switch .tab:hover::before{opacity:.7}
+.ar-switch .tab[aria-pressed="true"]{background:linear-gradient(var(--c-soft),var(--c-soft)),var(--surface);color:var(--text);box-shadow:var(--shadow),inset 0 -2px 0 var(--c)}
+.ar-switch .tab[aria-pressed="true"]::before{opacity:1;transform:scale(1.15);box-shadow:0 0 0 3px var(--c-soft)}
+#arCount{background:var(--accent-soft);color:var(--accent)}
+#arTakenCount{background:var(--gold-soft);color:var(--text)}
 .period .btn{padding:4px 12px}
 .period{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+/* Choix du mois (Statistiques) */
+.month-pick{position:relative;gap:6px}
+.month-pick .mp-label{min-width:150px;font-weight:600;color:var(--text);text-align:center}
+.month-pick .mp-label:hover,.month-pick .mp-label[aria-expanded="true"]{border-color:var(--accent);background:var(--surface)}
+.mp-pop{
+  position:absolute;top:calc(100% + 8px);right:0;z-index:20;width:264px;padding:12px;
+  background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 32px rgba(20,26,42,.16);
+  animation:fade .12s ease;
+}
+.mp-pop[hidden]{display:none}
+.mp-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;color:var(--text);font-size:15px}
+.mp-nav,.mp-month,.mp-today{border:0;background:transparent;cursor:pointer;font:inherit;color:var(--text);border-radius:8px}
+.mp-nav{width:30px;height:30px;font-size:16px;color:var(--muted)}
+.mp-nav:hover{background:var(--surface-2);color:var(--text)}
+.mp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.mp-month{padding:9px 0;font-size:13.5px;text-transform:capitalize}
+.mp-month:hover{background:var(--surface-2)}
+.mp-month.is-now{box-shadow:inset 0 0 0 1px var(--accent);color:var(--accent);font-weight:600}
+.mp-month.is-sel{background:var(--accent);color:#fff;font-weight:600;box-shadow:none}
+.mp-nav:focus-visible,.mp-month:focus-visible,.mp-today:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.mp-today{display:block;width:100%;margin-top:10px;padding:7px 0;font-size:13px;color:var(--accent);font-weight:500;border-top:1px solid var(--line);border-radius:0 0 8px 8px}
+.mp-today:hover{background:var(--accent-soft)}
 
 @media (prefers-reduced-motion:reduce){
   .fill{transition:none}
@@ -497,6 +613,19 @@ td input[type=date]{padding:4px 8px}
   body{background:#fff}
   .card,.banner{break-inside:avoid;box-shadow:none}
 }
+/* Listes déroulantes : même allure que les filtres de personnes */
+select:not([multiple]){
+  -webkit-appearance:none;appearance:none;cursor:pointer;padding-right:30px;color:var(--text);
+  background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238891a8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 11px center;
+  transition:border-color .15s,background-color .15s;
+}
+select:not([multiple]):hover{border-color:var(--accent)}
+select:not([multiple]):disabled{cursor:default;opacity:.6;border-color:var(--line)}
+select option{background:var(--surface);color:var(--text)}
+input[type=month],input[type=date]{cursor:pointer;transition:border-color .15s}
+input[type=month]:hover,input[type=date]:hover{border-color:var(--accent)}
+input[type=month]::-webkit-calendar-picker-indicator,input[type=date]::-webkit-calendar-picker-indicator{cursor:pointer;opacity:.55;transition:opacity .15s}
+input[type=month]:hover::-webkit-calendar-picker-indicator,input[type=date]:hover::-webkit-calendar-picker-indicator{opacity:1}
 </style>
 </head>
 <body>
@@ -603,20 +732,14 @@ td input[type=date]{padding:4px 8px}
   </div>
 
   <!-- Onglet Tickets -->
+  <div class="pole-pop" id="polePop" role="dialog" hidden><p class="modal-kicker" id="polePopTitle"></p><div class="pole-pick" id="polePopList"></div></div>
+
   <div id="panel-tickets" role="tabpanel" aria-labelledby="tab-tickets">
     <section>
       <div class="section-head">
         <h2>Session en cours <span class="tag" id="ticketCount">0</span></h2>
         <div class="row no-print" style="align-items:flex-end">
-          <button class="btn primary" id="addTicketBtn" type="button" aria-expanded="false">Ajouter un ticket</button>
           <button class="btn" id="toggleImport" type="button" aria-expanded="false" aria-controls="importPanel">Importer depuis Excel</button>
-          <div class="menu-wrap">
-            <button class="btn" id="exportToggle" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="exportMenu">Exporter ▾</button>
-            <div class="menu" id="exportMenu" role="menu" hidden>
-              <button type="button" role="menuitem" id="copyBtn">Copier pour Excel</button>
-              <button type="button" role="menuitem" id="exportBtn">Sauvegarder (JSON)</button>
-            </div>
-          </div>
           <button class="btn danger admin-only" id="clearBtn" type="button">Vider les tickets</button>
           <span class="validate-stack">
             <button class="btn mail-btn" id="mailOutlook" type="button" hidden>✉ Ouvrir le mail dans Outlook</button>
@@ -627,9 +750,9 @@ td input[type=date]{padding:4px 8px}
       <p class="msg no-print" id="tableMsg" style="margin:-6px 0 0"></p>
       <p class="msg no-print" id="undoBar" style="margin:0 0 10px"></p>
       <div class="import-panel no-print" id="importPanel" hidden>
-       <div class="grid">
-        <div class="card">
-          <h3>Coller depuis Excel</h3>
+       <div class="grid import-grid">
+        <div class="card import-main">
+          <h3>Coller la vue 💎 Tickets prioritaires depuis Excel</h3>
           <div class="order-hint" id="pasteHint"></div>
           <textarea id="pasteArea" placeholder="Copiez les lignes de tickets dans Excel (sans les en-têtes), puis collez ici…"></textarea>
           <p class="help">L'aperçu s'affiche dès que vous collez : rien n'est ajouté avant d'avoir cliqué sur « Importer ». Un ticket déjà présent (même identifiant) est mis à jour sans perdre son affectation.</p>
@@ -644,13 +767,16 @@ td input[type=date]{padding:4px 8px}
           <p class="help">Les tickets sont toujours rangés selon ce modèle, dans cet ordre. La 1<sup>re</sup> colonne sert d'identifiant : elle est obligatoire à l'import.</p>
           <p class="help user-only">Seul un administrateur peut modifier le modèle.</p>
         </div>
-        <div class="card">
+        <div class="card people-card">
           <h3>Personnes pour l'affectation</h3>
           <ul class="chips" id="peopleList"></ul>
           <form class="row" id="personForm">
-            <input type="text" id="personInput" placeholder="Nom de la personne" style="flex:1 1 160px" autocomplete="off">
+            <input type="text" id="personInput" placeholder="Nom de la personne" style="flex:1 1 100%" autocomplete="off">
+            <select id="newPole" aria-label="Pôle de la nouvelle personne" style="flex:1 1 110px"></select>
             <button class="btn" type="submit">Ajouter</button>
           </form>
+          <p class="help">Cliquez sur un nom pour changer son pôle.</p>
+          <p class="msg err-text" id="polesMissing" hidden>Les pôles ne seront pas enregistrés tant que le script <strong>supabase/004_poles_consultants.sql</strong> n'a pas été exécuté dans Supabase (SQL Editor). Rechargez ensuite la page.</p>
         </div>
        </div>
         <div class="card preview-card" id="previewCard" hidden>
@@ -667,13 +793,17 @@ td input[type=date]{padding:4px 8px}
         </div>
       </div>
       <div class="toolbar">
-        <input type="search" id="search" placeholder="Rechercher…">
+        <div class="row" style="flex-wrap:nowrap;flex:1 1 auto">
+          <input type="search" id="search" placeholder="Rechercher…">
+          <button class="btn primary no-print" style="white-space:nowrap" id="addTicketBtn" type="button" aria-expanded="false">Saisir un ticket</button>
+        </div>
         <div class="row">
           <label class="check"><input type="checkbox" id="onlyUnassigned"> Non affectés uniquement</label>
           <select id="filterPerson" hidden></select>
           <button type="button" class="filter-btn" id="filterPersonBtn" aria-haspopup="listbox" aria-expanded="false">Toutes les personnes</button>
         </div>
       </div>
+      <div class="pole-legend" style="margin:14px 0 -2px"></div>
       <div class="table-wrap tickets-wrap">
         <table id="ticketTable"><thead></thead><tbody></tbody></table>
       </div>
@@ -684,7 +814,7 @@ td input[type=date]{padding:4px 8px}
   <div id="panel-archive" role="tabpanel" aria-labelledby="tab-archive" hidden>
     <div class="view-switch no-print">
       <span></span>
-      <div class="tabs" role="group" aria-label="Type d'archives">
+      <div class="tabs ar-switch" role="group" aria-label="Type d'archives">
         <button class="tab" type="button" data-arview="sessions" aria-pressed="true">Tickets affectés</button>
         <button class="tab" type="button" data-arview="taken" aria-pressed="false">Tickets pris</button>
       </div>
@@ -700,18 +830,52 @@ td input[type=date]{padding:4px 8px}
     <section id="arTaken" hidden>
       <div class="section-head">
         <h2>Tickets pris <span class="tag" id="arTakenCount">0</span></h2>
+        <div class="row no-print"><button class="btn primary" id="takenToggle" type="button" aria-expanded="false" aria-controls="takenPanel">Importer des tickets pris</button></div>
       </div>
-      <p class="help" style="margin:-6px 0 10px">Tickets pris directement par les consultants, importés depuis Statistiques.</p>
+      <p class="help" style="margin:-6px 0 10px">Tickets pris directement par les consultants. Ils comptent dans les statistiques.</p>
+      <p class="msg no-print" id="takenMsg" style="margin:0 0 10px"></p>
+      <div class="card taken-panel no-print" id="takenPanel" hidden>
+        <div class="section-head" style="margin-bottom:8px">
+          <h2 style="font-size:16px">Tickets pris par les consultants (Vue perso) <span class="tag" id="takenTag"></span></h2>
+        </div>
+        <p class="msg err-text" id="takenMissing" hidden>La base doit être mise à jour avant d'utiliser cette fonction : exécutez le script <strong>supabase/002_tickets_pris.sql</strong> dans Supabase (SQL Editor), puis rechargez la page.</p>
+        <p class="msg err-text" id="takenExtraMissing" hidden>Les colonnes Pôle, Organisation et Demandeur ne seront pas enregistrées tant que le script <strong>supabase/003_tickets_pris_colonnes.sql</strong> n'a pas été exécuté dans Supabase (SQL Editor). Rechargez ensuite la page.</p>
+        <p class="help" style="margin:0 0 10px">Collez depuis Excel la liste des tickets que les consultants ont pris eux-mêmes. La ligne d'en-têtes est facultative. Un ticket déjà affecté par l'équipe n'est pas compté deux fois.</p>
+        <div class="order-hint">
+          <span class="order-title">Ordre des colonnes à respecter</span>
+          <ol class="order-list"><li>ID</li><li>Affecté</li><li>{{dc.ticket_field_category-0}}</li><li>Sujet</li><li>Organisation</li><li>Demandeur</li><li>Assigné</li></ol>
+          <span class="order-note">Supprimez toutes les autres colonnes de l’export avant de copier.</span>
+        </div>
+        <textarea id="takenPaste" placeholder="Copiez les tickets dans Excel dans l'ordre ci-dessus, puis collez ici…"></textarea>
+        <div id="takenPreview" hidden>
+          <div class="taken-map" id="takenMap"></div>
+          <ul class="issues" id="takenIssues"></ul>
+          <div class="table-wrap taken-scroll" style="margin-top:0"><table id="takenTable"></table></div>
+          <div class="row" style="justify-content:flex-end;margin-top:12px">
+            <button class="btn" id="takenCancel" type="button">Annuler</button>
+            <button class="btn primary" id="takenImport" type="button" disabled>Importer</button>
+          </div>
+        </div>
+      </div>
     </section>
     <div class="toolbar">
       <input type="search" id="arSearch" placeholder="Rechercher…">
       <div class="row">
-        <select id="arSession" aria-label="Session"></select>
-        <select id="arTakenSession" aria-label="Session d'import" hidden></select>
+        <span class="opt-box" id="arSessionBox">
+          <select id="arSession" aria-label="Session" hidden></select>
+          <button type="button" class="filter-btn" id="arSessionBtn" aria-haspopup="listbox" aria-expanded="false" aria-controls="arSessionPop"></button>
+          <ul class="opt-pop" id="arSessionPop" role="listbox" aria-label="Session" tabindex="-1" hidden></ul>
+        </span>
+        <span class="opt-box" id="arTakenSessionBox" hidden>
+          <select id="arTakenSession" aria-label="Session d'import" hidden></select>
+          <button type="button" class="filter-btn" id="arTakenSessionBtn" aria-haspopup="listbox" aria-expanded="false" aria-controls="arTakenSessionPop"></button>
+          <ul class="opt-pop" id="arTakenSessionPop" role="listbox" aria-label="Session d'import" tabindex="-1" hidden></ul>
+        </span>
         <select id="arPerson" aria-label="Personne" hidden></select>
         <button type="button" class="filter-btn" id="arPersonBtn" aria-haspopup="listbox" aria-expanded="false">Toutes les personnes</button>
       </div>
     </div>
+    <div class="pole-legend" style="margin:14px 0 -2px"></div>
     <div class="table-wrap tickets-wrap" id="arSessionsWrap">
       <table id="arTable"><thead></thead><tbody></tbody></table>
     </div>
@@ -729,35 +893,27 @@ td input[type=date]{padding:4px 8px}
         <button class="tab" type="button" data-view="year" aria-pressed="false">Année</button>
         <button class="tab" type="button" data-view="detail" aria-pressed="false">Année (détail)</button>
       </div>
-      <span class="vs-right"><button class="btn" id="takenToggle" type="button" aria-expanded="false" aria-controls="takenPanel">Importer des tickets pris</button></span>
-    </div>
-    <div class="card taken-panel no-print" id="takenPanel" hidden>
-      <div class="section-head" style="margin-bottom:8px">
-        <h2 style="font-size:16px">Tickets pris par les consultants <span class="tag" id="takenTag"></span></h2>
-      </div>
-      <p class="msg err-text" id="takenMissing" hidden>La base doit être mise à jour avant d'utiliser cette fonction : exécutez le script <strong>supabase/002_tickets_pris.sql</strong> dans Supabase (SQL Editor), puis rechargez la page.</p>
-      <p class="help" style="margin:0 0 10px">Collez depuis Excel la liste des tickets que les consultants ont pris eux-mêmes. La ligne d'en-têtes est facultative. Un ticket déjà affecté par l'équipe n'est pas compté deux fois.</p>
-      <div class="order-hint">
-        <span class="order-title">Ordre des colonnes à respecter</span>
-        <ol class="order-list"><li>ID</li><li>Date de prise en charge</li><li>Pôle</li><li>Sujet</li><li>Demandeur</li><li>Organisation</li><li>Assigné</li></ol>
-      </div>
-      <textarea id="takenPaste" placeholder="Copiez les tickets dans Excel dans l'ordre ci-dessus, puis collez ici…"></textarea>
-      <div id="takenPreview" hidden>
-        <div class="taken-map" id="takenMap"></div>
-        <ul class="issues" id="takenIssues"></ul>
-        <div class="table-wrap taken-scroll" style="margin-top:0"><table id="takenTable"></table></div>
-        <div class="row" style="justify-content:flex-end;margin-top:12px">
-          <button class="btn" id="takenCancel" type="button">Annuler</button>
-          <button class="btn primary" id="takenImport" type="button" disabled>Importer</button>
-        </div>
-      </div>
-      <p class="msg" id="takenMsg"></p>
+      <span></span>
     </div>
     <section id="statsMonth">
       <div class="section-head">
         <h2>Le mois <span class="tag" id="monthTag"></span></h2>
-        <label class="period">Période <input type="month" id="monthPicker"></label>
+        <div class="period month-pick">
+          <button class="btn" type="button" data-month-shift="-1" aria-label="Mois précédent">‹</button>
+          <button class="btn mp-label" type="button" id="monthBtn" aria-haspopup="dialog" aria-expanded="false" aria-controls="monthPop"></button>
+          <button class="btn" type="button" data-month-shift="1" aria-label="Mois suivant">›</button>
+          <div class="mp-pop" id="monthPop" role="dialog" aria-label="Choisir un mois" hidden>
+            <div class="mp-head">
+              <button type="button" class="mp-nav" data-pop-year="-1" aria-label="Année précédente">‹</button>
+              <strong id="monthPopYear"></strong>
+              <button type="button" class="mp-nav" data-pop-year="1" aria-label="Année suivante">›</button>
+            </div>
+            <div class="mp-grid" id="monthGrid"></div>
+            <button type="button" class="mp-today" id="monthToday">Ce mois-ci</button>
+          </div>
+        </div>
       </div>
+      <div class="pole-legend"></div>
       <div class="grid">
         <div class="card stat-card aff">
           <h3>Tickets affectés <span class="tag" id="monthAffTag"></span></h3>
@@ -783,6 +939,7 @@ td input[type=date]{padding:4px 8px}
           <button class="btn" type="button" data-year-shift="1" aria-label="Année suivante">›</button>
         </div>
       </div>
+      <div class="pole-legend"></div>
       <div class="grid">
         <div class="card stat-card aff">
           <h3>Tickets affectés <span class="tag" id="yearAffTag"></span></h3>
@@ -810,6 +967,7 @@ td input[type=date]{padding:4px 8px}
       </div>
       <div class="card">
         <h3>Tickets par personne et par mois</h3>
+        <div class="pole-legend"></div>
         <p class="legend" style="align-items:center">
           <span><span class="yc-sample"><b>11</b><small><span class="n-aff">8</span> + <span class="n-self">3</span></small></span>Total = <span class="n-aff">affectés</span> + <span class="n-self">pris</span></span>
           <span>Plus la case est foncée, plus le total est élevé</span>
@@ -854,7 +1012,7 @@ td input[type=date]{padding:4px 8px}
   /* ---------- Données ---------- */
   var LEGACY_KEY = 'affectation-tickets-v1'; // ancienne version, données gardées dans le navigateur
   var UNDO_KEY = 'affectation-undo-v2';
-  function defaults(){ return { columns: [], required: [], tickets: [], archive: [], sessions: [], people: [], taken: [], dateCol: -1 }; }
+  function defaults(){ return { columns: [], required: [], tickets: [], archive: [], sessions: [], people: [], taken: [], dateCol: -1, poles: {} }; }
   // Session en cours + tickets archivés : base des statistiques
   function allTickets(){ return state.tickets.concat(state.archive); }
   // Garantit la cohérence du modèle : une case « obligatoire » par colonne, l'identifiant toujours obligatoire
@@ -864,6 +1022,7 @@ td input[type=date]{padding:4px 8px}
     if (!Array.isArray(s.archive)) s.archive = [];
     if (!Array.isArray(s.sessions)) s.sessions = [];
     if (!Array.isArray(s.taken)) s.taken = [];
+    if (!s.poles || typeof s.poles !== 'object' || Array.isArray(s.poles)) s.poles = {};
     s.required = s.columns.map(function(_, i){ return i === 0 || !!s.required[i]; });
     if (s.dateCol >= s.columns.length) s.dateCol = -1;
     s.tickets.concat(s.archive).forEach(function(t){
@@ -893,6 +1052,45 @@ td input[type=date]{padding:4px 8px}
     'antoine': 'AL', 'christophe': 'CM', 'diogo': 'DR', 'hanh': 'HN', 'jeyson': 'JA', 'loic': 'LW',
     'luc': 'LM', 'maria-jose': 'MH', 'maria jose': 'MH', 'maria': 'MS', 'raphael': 'RR', 'sylvie': 'SR', 'theo': 'TB'
   };
+  // Pôle des consultants : un seul par personne (la base garde une liste, seul le premier compte)
+  var CONSULTANT_POLES = [['APV', 'apv'], ['Technique', 'tech'], ['VN/VO', 'vnvo'], ['Compta', 'compta'], ['Manager', 'manager']];
+  function cleanPoles(list){
+    list = Array.isArray(list) ? list : [];
+    return CONSULTANT_POLES.map(function(p){ return p[0]; }).filter(function(k){ return list.indexOf(k) >= 0; }).slice(0, 1);
+  }
+  function polesOf(name){ return cleanPoles(state.poles[name]); }
+  function poleVar(k){ for (var i = 0; i < CONSULTANT_POLES.length; i++) if (CONSULTANT_POLES[i][0] === k) return 'var(--pole-' + CONSULTANT_POLES[i][1] + ')'; return ''; }
+  // Classe et style d'une bulle : --pc et --pbg portent la couleur du pôle
+  function poleAttr(name){
+    var ps = polesOf(name); if (!ps.length) return { cls: '', style: '', title: '' };
+    var c = poleVar(ps[0]);
+    return { cls: ' has-pole', style: ' style="--pc:' + c + ';--pbg:' + c + '"', title: ps[0] };
+  }
+  // Pastille d'un consultant dans les tableaux d'archives
+  function whoHTML(name, extra){
+    if (!name) return '<td><span class="who none" title="Non affecté">Non affecté</span></td>';
+    var a = poleAttr(name);
+    return '<td><span class="who' + extra + a.cls + '"' + a.style + ' title="' + esc(name + (a.title ? ' · ' + a.title : '')) + '">' + esc(name) + '</span></td>';
+  }
+  function avatarHTML(name, size){
+    var a = poleAttr(name);
+    return '<span class="avatar' + (size ? ' ' + size : '') + a.cls + '"' + a.style + ' aria-hidden="true">' + esc(initials(name)) + '</span>';
+  }
+  function poleLegendHTML(){
+    return '<span class="pl-title">Pôles</span>' + CONSULTANT_POLES.map(function(p){
+      return '<span><i class="pole-dot" style="--pbg:var(--pole-' + p[1] + ')"></i>' + p[0] + '</span>';
+    }).join('') +
+      '<span><i class="pole-dot" style="--pbg:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line)"></i>Sans pôle</span>';
+  }
+  // Choix d'un seul pôle (boutons radio), avec « Sans pôle »
+  function polePickHTML(prefix, checked){
+    var cur = checked[0] || '';
+    return CONSULTANT_POLES.concat([['', 'none']]).map(function(p){
+      var color = p[0] ? 'var(--pole-' + p[1] + ')' : 'var(--muted)';
+      return '<label style="--pc:' + color + '"><input type="radio" name="pole-' + prefix + '" value="' + p[0] + '" data-' + prefix + (p[0] === cur ? ' checked' : '') + '>' +
+        '<i class="pole-dot"></i>' + (p[0] || 'Sans pôle') + '</label>';
+    }).join('');
+  }
   function initials(name){
     var known = KNOWN_INITIALS[String(name).trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')];
     if (known) return known;
@@ -952,6 +1150,8 @@ td input[type=date]{padding:4px 8px}
     shiftDateCol(i, j);
     state.required[0] = true;
   }
+  // En-têtes de l'export Excel, dans l'ordre attendu par l'import (affichés dans l'aide)
+  var EXCEL_ORDER = ['ID', 'Créé', '{{dc.ticket_field_category-0}}', 'Sujet', 'Organisation', 'Demandeur'];
   function renderModel(){
     var n = state.columns.length, ro = isAdmin() ? '' : ' disabled';
     $('modelList').innerHTML = n ? state.columns.map(function(c, i){
@@ -966,7 +1166,8 @@ td input[type=date]{padding:4px 8px}
     }).join('') : '<li class="empty" style="font-size:12.5px">Aucun modèle pour l\'instant : il sera créé à partir des colonnes du premier import, puis modifiable ici.</li>';
     $('pasteHint').innerHTML = n
       ? '<span class="order-title">Ordre des colonnes à respecter</span><ol class="order-list">' +
-          state.columns.map(function(c){ return '<li>' + esc(c) + '</li>'; }).join('') + '</ol>'
+          EXCEL_ORDER.map(function(c){ return '<li>' + esc(c) + '</li>'; }).join('') + '</ol>' +
+          '<span class="order-note">Supprimez toutes les autres colonnes de l’export avant de copier.</span>'
       : '<span class="order-title">Premier import</span>Incluez la ligne d\'en-têtes : elle définira le modèle de colonnes.';
     $('pasteArea').placeholder = n
       ? 'Copiez les lignes de tickets dans Excel (sans les en-têtes), puis collez ici…'
@@ -1211,6 +1412,8 @@ td input[type=date]{padding:4px 8px}
       var i = state.people.indexOf(name);
       if (inv.people[name] && i < 0) state.people.push(name);
       if (!inv.people[name] && i >= 0) state.people.splice(i, 1);
+      var ps = inv.people[name] ? cleanPoles(inv.people[name].poles) : [];
+      if (ps.length) state.poles[name] = ps; else delete state.poles[name];
     });
     Object.keys(inv.sessions || {}).forEach(function(id){
       state.sessions = state.sessions.filter(function(s){ return s.id !== id; });
@@ -1268,16 +1471,47 @@ td input[type=date]{padding:4px 8px}
   /* ---------- Période ---------- */
   var now = new Date();
   var period = { y: now.getFullYear(), m: now.getMonth() };
-  $('monthPicker').value = period.y + '-' + pad(period.m + 1);
-  $('monthPicker').addEventListener('change', function(){
-    var p = this.value.split('-');
-    if (p.length === 2){ period.y = +p[0]; period.m = +p[1] - 1; renderStats(); renderBanner(); animateBars($('panel-stats')); }
-  });
-  function shiftYear(delta){
-    period.y += delta;
-    $('monthPicker').value = period.y + '-' + pad(period.m + 1);
-    renderStats(); renderBanner(); animateBars($('panel-stats'));
+  function setPeriod(y, m){
+    var d = new Date(y, m, 1);
+    period.y = d.getFullYear(); period.m = d.getMonth();
+    renderMonthBtn(); renderStats(); renderBanner(); animateBars($('panel-stats'));
   }
+  function shiftYear(delta){ setPeriod(period.y + delta, period.m); }
+  document.querySelectorAll('[data-month-shift]').forEach(function(b){
+    b.addEventListener('click', function(){ setPeriod(period.y, period.m + +b.dataset.monthShift); });
+  });
+
+  /* ---------- Choix du mois : grille des 12 mois ---------- */
+  var popYear = period.y;
+  function renderMonthBtn(){ $('monthBtn').textContent = MONTHS[period.m].charAt(0).toUpperCase() + MONTHS[period.m].slice(1) + ' ' + period.y; }
+  function renderMonthPop(){
+    var today = new Date();
+    $('monthPopYear').textContent = popYear;
+    $('monthGrid').innerHTML = MONTHS_SHORT.map(function(label, m){
+      var cls = (popYear === period.y && m === period.m ? ' is-sel' : '') + (popYear === today.getFullYear() && m === today.getMonth() ? ' is-now' : '');
+      return '<button type="button" class="mp-month' + cls + '" data-m="' + m + '" aria-label="' + MONTHS[m] + ' ' + popYear + '">' + label + '</button>';
+    }).join('');
+  }
+  function setMonthPopOpen(open){
+    $('monthPop').hidden = !open;
+    $('monthBtn').setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (!open) return;
+    popYear = period.y; renderMonthPop();
+    var sel = $('monthGrid').querySelector('.is-sel'); if (sel) sel.focus();
+  }
+  $('monthBtn').addEventListener('click', function(e){ e.stopPropagation(); setMonthPopOpen($('monthPop').hidden); });
+  $('monthPop').addEventListener('click', function(e){
+    e.stopPropagation();
+    var y = e.target.closest('[data-pop-year]'), mb = e.target.closest('[data-m]');
+    if (y){ popYear += +y.dataset.popYear; renderMonthPop(); }
+    else if (mb){ setMonthPopOpen(false); setPeriod(popYear, +mb.dataset.m); $('monthBtn').focus(); }
+    else if (e.target.id === 'monthToday'){ var t = new Date(); setMonthPopOpen(false); setPeriod(t.getFullYear(), t.getMonth()); $('monthBtn').focus(); }
+  });
+  document.addEventListener('click', function(){ if (!$('monthPop').hidden) setMonthPopOpen(false); });
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && !$('monthPop').hidden){ setMonthPopOpen(false); $('monthBtn').focus(); }
+  });
+  renderMonthBtn();
   document.querySelectorAll('[data-year-shift]').forEach(function(b){
     b.addEventListener('click', function(){ shiftYear(+b.dataset.yearShift); });
   });
@@ -1331,19 +1565,28 @@ td input[type=date]{padding:4px 8px}
   /* ---------- Rendu : bandeau ---------- */
   function renderBanner(){
     var total = state.tickets.length;
-    var mx = yearMatrix(period.y), monthTotal = 0, yearTotal = 0, active = 0;
-    Object.keys(mx).forEach(function(p){
-      monthTotal += mx[p][period.m];
-      var s = mx[p].reduce(function(a, b){ return a + b; }, 0);
-      yearTotal += s; if (s) active++;
+    // Tickets pris, comptés sur la date de prise en charge : semaine en cours (lundi → dimanche) et mois en cours
+    var today = new Date(), monday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (today.getDay() + 6) % 7);
+    var sunday = new Date(monday.getFullYear(), monday.getMonth(), monday.getDate() + 6);
+    var week = {}, month = {}, weekTotal = 0, monthTotal = 0;
+    state.taken.forEach(function(t){
+      var d = parseDate(t.takenOn);
+      if (!d) return;
+      if (d >= monday && d <= sunday){ week[t.person] = (week[t.person] || 0) + 1; weekTotal++; }
+      if (d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth()){ month[t.person] = (month[t.person] || 0) + 1; monthTotal++; }
     });
     var items = [
-      [monthTotal, 'Affectations du mois', 'en ' + MONTHS[period.m] + ' ' + period.y, ''],
-      [yearTotal, "Affectations de l'année", 'en ' + period.y + ' · ' + plural(active, 'personne', 'personnes'), '']
+      [weekTotal, 'Tickets pris de la semaine', 'du ' + monday.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' au ' + sunday.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }), week],
+      [monthTotal, 'Tickets pris du mois', 'en ' + MONTHS[today.getMonth()] + ' ' + today.getFullYear(), month]
     ];
     $('banner').innerHTML = items.map(function(it){
-      return '<div class="banner-item"><div class="banner-num ' + it[3] + '">' + nf.format(it[0]) + '</div>' +
-        '<div class="banner-label">' + it[1] + '</div><div class="banner-sub">' + it[2] + '</div></div>';
+      var rows = sortCounts(it[3]);
+      var pop = rows.length
+        ? '<table>' + rows.map(function(r){ return '<tr><td>' + esc(r[0]) + '</td><td>' + nf.format(r[1]) + '</td></tr>'; }).join('') + '</table>'
+        : '<p>Aucun ticket pris sur la période.</p>';
+      return '<div class="banner-item" tabindex="0"><div class="banner-num">' + nf.format(it[0]) + '</div>' +
+        '<div class="banner-label">' + it[1] + '</div><div class="banner-sub">' + it[2] + '</div>' +
+        '<div class="banner-pop" role="tooltip"><p class="modal-kicker">Par consultant</p>' + pop + '</div></div>';
     }).join('');
     $('tabTicketsSub').textContent = plural(total, 'ligne', 'lignes');
   }
@@ -1352,28 +1595,73 @@ td input[type=date]{padding:4px 8px}
   function renderPeople(){
     var ul = $('peopleList');
     ul.innerHTML = state.people.length
-      ? state.people.map(function(p, i){ return '<li class="chip">' + esc(p) + '<button type="button" data-i="' + i + '" aria-label="Retirer ' + esc(p) + '">×</button></li>'; }).join('')
+      ? state.people.map(function(p, i){
+          var a = poleAttr(p);
+          return '<li class="chip"><button type="button" class="chip-name" data-pi="' + i + '" aria-haspopup="dialog" title="' + esc(a.title ? 'Pôle : ' + a.title : 'Sans pôle') + ' · cliquer pour modifier">' +
+            '<i class="pole-dot' + (a.cls ? '' : ' none') + '"' + a.style + '></i>' + esc(p) + '</button>' +
+            '<button type="button" data-i="' + i + '" aria-label="Retirer ' + esc(p) + '">×</button></li>';
+        }).join('')
       : '<li class="empty">Ajoutez les personnes qui pourront recevoir des tickets.</li>';
     var fp = $('filterPerson'), cur = fp.value;
     fp.innerHTML = '<option value="">Toutes les personnes</option>' +
       allPeople().map(function(p){ return '<option>' + esc(p) + '</option>'; }).join('');
     fp.value = cur; if (fp.value !== cur) fp.value = '';
     renderFilterButton('filterPerson', 'filterPersonBtn');
+    $('polesMissing').hidden = !db || peopleExtra;
+    document.querySelectorAll('.pole-legend').forEach(function(el){ if (!el.innerHTML) el.innerHTML = poleLegendHTML(); });
   }
+  $('newPole').innerHTML = '<option value="">Sans pôle</option>' + CONSULTANT_POLES.map(function(p){ return '<option>' + p[0] + '</option>'; }).join('');
   $('personForm').addEventListener('submit', function(e){
     e.preventDefault();
     var v = $('personInput').value.trim();
-    if (v && state.people.indexOf(v) < 0){ state.people.push(v); save(); audit('personne_ajoutee', { nom: v }); renderAll(); }
+    if (v && state.people.indexOf(v) < 0){
+      var ps = $('newPole').value ? [$('newPole').value] : [];
+      state.people.push(v);
+      if (ps.length) state.poles[v] = cleanPoles(ps); else delete state.poles[v];
+      save(); audit('personne_ajoutee', { nom: v, poles: ps }); renderAll();
+      $('newPole').value = '';
+    }
     $('personInput').value = '';
     $('personInput').focus();
   });
+  /* Menu des pôles d'une personne (clic sur son nom) */
+  var polePopName = null;
+  function closePolePop(){ if (polePopName === null) return; polePopName = null; $('polePop').hidden = true; }
+  function openPolePop(btn, name){
+    polePopName = name;
+    $('polePopTitle').textContent = 'Pôle de ' + name;
+    $('polePopList').innerHTML = polePickHTML('pop', polesOf(name));
+    var el = $('polePop'), rc = btn.getBoundingClientRect();
+    el.hidden = false;
+    el.style.left = Math.min(Math.max(8, rc.left), window.innerWidth - el.offsetWidth - 8) + 'px';
+    var top = rc.bottom + 6; if (top + el.offsetHeight > window.innerHeight - 8) top = Math.max(8, rc.top - el.offsetHeight - 6);
+    el.style.top = top + 'px';
+    var first = el.querySelector('input'); if (first) first.focus();
+  }
+  $('polePop').addEventListener('click', function(e){ e.stopPropagation(); });
+  $('polePop').addEventListener('change', function(e){
+    if (polePopName === null || !e.target.matches('input[data-pop]')) return;
+    var name = polePopName, ps = Array.prototype.map.call($('polePopList').querySelectorAll('input:checked'), function(c){ return c.value; });
+    if (ps.length) state.poles[name] = cleanPoles(ps); else delete state.poles[name];
+    save(); audit('poles_modifies', { nom: name, poles: ps }); renderAll();
+  });
+  document.addEventListener('click', closePolePop);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && polePopName !== null) closePolePop(); });
+  window.addEventListener('scroll', closePolePop, true);
   $('peopleList').addEventListener('click', function(e){
+    var nb = e.target.closest('button[data-pi]');
+    if (nb){
+      e.stopPropagation();
+      var nm = state.people[+nb.dataset.pi];
+      if (polePopName === nm) closePolePop(); else openPolePop(nb, nm);
+      return;
+    }
     var b = e.target.closest('button[data-i]'); if (!b) return;
     var name = state.people[+b.dataset.i];
     var n = allTickets().filter(function(t){ return t.assignee === name; }).length;
     function remove(){
       var i = state.people.indexOf(name); if (i < 0) return;
-      state.people.splice(i, 1); save(); audit('personne_retiree', { nom: name }); renderAll();
+      state.people.splice(i, 1); delete state.poles[name]; save(); audit('personne_retiree', { nom: name }); renderAll();
     }
     if (!n){ remove(); return; }
     askConfirm({
@@ -1396,7 +1684,7 @@ td input[type=date]{padding:4px 8px}
   // Colonnes élargies, avec retour à la ligne : largeur minimale en pixels
   var WIDE_COLS = [[/^sujet/, 420]];
   // Étiquettes à largeur réduite (texte complet au survol) : largeur maximale en pixels
-  var TAG_COLS = [[/^pole/, 80]];
+  var TAG_COLS = [[/^pole/, 110]];
   function colWidth(list, i){
     var n = norm(state.columns[i]);
     for (var k = 0; k < list.length; k++) if (list[k][0].test(n)) return list[k][1];
@@ -1425,6 +1713,9 @@ td input[type=date]{padding:4px 8px}
       return 'text';
     });
   }
+  // Pôle d'un ticket → couleur du pôle consultant correspondant
+  var TICKET_POLE_COLORS = { 'atelier': 'apv', 'magasin': 'apv', 'comptabilite': 'compta', 'vente vn-vo': 'vnvo', 'divers': 'tech' };
+  function ticketPoleColor(v){ var k = TICKET_POLE_COLORS[norm(v)]; return k ? 'var(--pole-' + k + ')' : ''; }
   function cellHTML(v, i, kind){
     var txt = esc(cellText(v, i));
     switch (kind){
@@ -1433,7 +1724,8 @@ td input[type=date]{padding:4px 8px}
       case 'narrow': return '<td' + narrowAttrs(v, i) + '>' + txt + '</td>';
       case 'tag':
         var tw = colWidth(TAG_COLS, i);
-        return '<td>' + (txt ? '<span class="c-tag"' + (tw ? ' style="max-width:' + tw + 'px" title="' + esc(v) + '"' : '') + '>' + txt + '</span>' : '') + '</td>';
+        var pc = /^pole/.test(norm(state.columns[i])) ? ticketPoleColor(v) : '';
+        return '<td>' + (txt ? '<span class="c-tag' + (pc ? ' has-pole' : '') + '" style="' + (tw ? 'max-width:' + tw + 'px;' : '') + (pc ? '--pc:' + pc : '') + '"' + (tw ? ' title="' + esc(v) + '"' : '') + '>' + txt + '</span>' : '') + '</td>';
       case 'wide':
         var w = colWidth(WIDE_COLS, i);
         return '<td class="c-long" style="min-width:' + w + 'px;max-width:' + Math.round(w * 1.5) + 'px"><div class="clamp" title="' + esc(v) + '">' + txt + '</div></td>';
@@ -1468,9 +1760,94 @@ td input[type=date]{padding:4px 8px}
     table.tBodies[0].innerHTML = rows.length ? rows.map(function(t){
       return '<tr data-id="' + t.id + '"' + (t.assignee ? '' : ' class="unassigned"') + '>' +
         t.cells.map(function(v, i){ return cellHTML(v, i, kinds[i]); }).join('') +
-        '<td><button type="button" class="assign' + (t.assignee ? ' is-set' : '') + '" aria-haspopup="listbox" aria-expanded="false" title="' + esc(t.assignee || 'Non affecté') + '">' + esc(t.assignee || 'Non affecté') + '</button></td>' +
+        assignHTML(t.assignee) +
         '<td class="no-print"><button class="del" type="button" title="Supprimer ce ticket" aria-label="Supprimer">×</button></td></tr>';
     }).join('') : '<tr><td colspan="' + (state.columns.length + 2) + '" class="empty" style="padding:20px;white-space:normal">' + emptyText + '</td></tr>';
+    // Une poignée sur chaque bordure entre deux colonnes ; la bordure suit la souris et seule la colonne élastique compense.
+    // À gauche de l'élastique, la poignée règle la colonne de gauche ; à droite, celle de droite.
+    var flex = flexCol(), ths = table.tHead.rows[0].cells;
+    Array.prototype.forEach.call(ths, function(th, i){
+      if (i >= ths.length - 2) return; // pas de bordure utile avant la colonne de suppression
+      var target = i < flex ? i : i + 1, dir = i < flex ? 1 : -1;
+      th.insertAdjacentHTML('beforeend', '<span class="col-grip" data-col="' + target + '" data-dir="' + dir + '" title="Glisser pour déplacer la bordure · double-clic : largeurs automatiques" aria-hidden="true"></span>');
+    });
+    applyColWidths();
+  }
+
+  /* ---------- Largeur des colonnes du tableau des tickets (poignées) ---------- */
+  // Les largeurs sont propres à chaque navigateur et liées au modèle de colonnes : un autre modèle repart des largeurs automatiques.
+  var COLW_KEY = 'affectation-colwidths';
+  function colKey(){ return state.columns.join('\t'); }
+  function loadColWidths(){
+    try { var o = JSON.parse(localStorage.getItem(COLW_KEY) || 'null'); return o && o.key === colKey() ? o.widths : null; } catch(e){ return null; }
+  }
+  function saveColWidths(w){
+    try { if (w) localStorage.setItem(COLW_KEY, JSON.stringify({ key: colKey(), widths: w })); else localStorage.removeItem(COLW_KEY); } catch(e){}
+  }
+  // Colonne élastique : Sujet (ou à défaut la dernière colonne de données). Elle prend toute la largeur
+  // restante, sans descendre sous FLEX_MIN ; au-delà, le tableau défile horizontalement.
+  var FLEX_MIN = 300;
+  function flexCol(){
+    var kinds = columnKinds(), i = kinds.indexOf('wide');
+    if (i < 0) i = kinds.indexOf('long');
+    return i < 0 ? state.columns.length - 1 : i;
+  }
+  function applyColWidths(w){
+    updateVw();
+    var table = $('ticketTable'), head = table.tHead.rows[0];
+    w = w || loadColWidths();
+    var cg = table.querySelector('colgroup');
+    if (!w || !head || w.length !== head.cells.length){
+      if (cg) cg.remove();
+      table.classList.remove('cols-fixed'); table.style.width = '';
+      return;
+    }
+    if (!cg){ cg = document.createElement('colgroup'); table.insertBefore(cg, table.firstChild); }
+    var flex = flexCol(), fixed = 0;
+    cg.innerHTML = w.map(function(x, i){
+      if (i === flex) return '<col>';
+      fixed += x; return '<col style="width:' + x + 'px">';
+    }).join('');
+    table.classList.add('cols-fixed');
+    table.style.width = 'max(100%, ' + (fixed + FLEX_MIN) + 'px)';
+  }
+  var colDrag = null, colJustDragged = false; // colDrag : { i, x, start, widths, grip }
+  $('ticketTable').addEventListener('pointerdown', function(e){
+    var g = e.target.closest('.col-grip'); if (!g) return;
+    e.preventDefault(); e.stopPropagation();
+    // Première poignée utilisée : on fige les largeurs affichées
+    var widths = loadColWidths() || Array.prototype.map.call(this.tHead.rows[0].cells, function(th){ return Math.round(th.getBoundingClientRect().width); });
+    colDrag = { i: +g.dataset.col, dir: +g.dataset.dir || 1, x: e.clientX, start: widths[+g.dataset.col], widths: widths, grip: g };
+    g.classList.add('on'); document.body.classList.add('col-resizing');
+    applyColWidths(widths);
+  });
+  document.addEventListener('pointermove', function(e){
+    if (!colDrag) return;
+    colDrag.widths[colDrag.i] = Math.max(48, Math.round(colDrag.start + colDrag.dir * (e.clientX - colDrag.x)));
+    applyColWidths(colDrag.widths);
+  });
+  document.addEventListener('pointerup', function(){
+    if (!colDrag) return;
+    saveColWidths(colDrag.widths);
+    colDrag.grip.classList.remove('on'); document.body.classList.remove('col-resizing');
+    colDrag = null;
+    colJustDragged = true; setTimeout(function(){ colJustDragged = false; }, 0); // le clic qui suit le relâchement ne trie pas
+  });
+  // Un clic sur la poignée ne trie pas la colonne ; un double-clic revient aux largeurs automatiques
+  $('ticketTable').addEventListener('click', function(e){ if (colJustDragged || e.target.closest('.col-grip')) e.stopPropagation(); }, true);
+  $('ticketTable').addEventListener('dblclick', function(e){
+    if (!e.target.closest('.col-grip')) return;
+    saveColWidths(null); applyColWidths();
+  });
+  // Largeur visible de la fenêtre, sans la barre de défilement verticale
+  function updateVw(){ document.documentElement.style.setProperty('--vw', document.documentElement.clientWidth + 'px'); }
+  updateVw(); window.addEventListener('resize', updateVw);
+  if (window.ResizeObserver) new ResizeObserver(updateVw).observe(document.documentElement); // apparition de la barre de défilement
+  // Bouton d'affectation : couleur du pôle de la personne affectée
+  function assignHTML(who){
+    var a = who ? poleAttr(who) : { cls: '', style: '', title: '' };
+    return '<td><button type="button" class="assign' + (who ? ' is-set' : '') + a.cls + '"' + a.style + ' aria-haspopup="listbox" aria-expanded="false" title="' +
+      esc(who ? who + (a.title ? ' · ' + a.title : '') : 'Non affecté') + '">' + esc(who || 'Non affecté') + '</button></td>';
   }
   function findTicket(el){
     var tr = el.closest('tr[data-id]'); if (!tr) return null;
@@ -1505,7 +1882,9 @@ td input[type=date]{padding:4px 8px}
     var q = norm($('pickerSearch').value), o = picker.opts;
     var list = o.people.slice();
     if (o.current && list.indexOf(o.current) < 0) list.push(o.current);
-    list.sort(function(a, b){ return a.localeCompare(b, 'fr', { sensitivity: 'base' }); });
+    // Par pôle (ordre de la légende, sans pôle en dernier), puis par ordre alphabétique
+    var rankOf = function(n){ var ps = polesOf(n), k = ps.length ? CONSULTANT_POLES.map(function(p){ return p[0]; }).indexOf(ps[0]) : -1; return k < 0 ? CONSULTANT_POLES.length : k; };
+    list.sort(function(a, b){ return rankOf(a) - rankOf(b) || a.localeCompare(b, 'fr', { sensitivity: 'base' }); });
     var items = list.map(function(p){ return { value: p, label: p }; });
     if (q) return items.filter(function(it){ return norm(it.label).indexOf(q) >= 0; });
     return [{ value: '', label: o.firstLabel }].concat(items);
@@ -1513,11 +1892,21 @@ td input[type=date]{padding:4px 8px}
   function renderPicker(){
     var o = picker.opts, items = picker.items = pickerItems();
     if (picker.active >= items.length) picker.active = Math.max(0, items.length - 1);
+    var group = null; // pôle du bloc en cours : un titre au début de chaque bloc
     $('pickerList').innerHTML = items.length ? items.map(function(it, k){
       var sel = it.value === o.current, n = it.value && o.counts[it.value];
-      return (k === 1 && !items[0].value ? '<li class="picker-sep" role="presentation"></li>' : '') +
+      var head = '';
+      if (it.value){
+        var g = polesOf(it.value)[0] || '';
+        if (g !== group){
+          group = g;
+          var gc = g ? poleVar(g) : 'var(--muted)';
+          head = '<li class="picker-group" role="presentation" style="--pc:' + gc + '"><i class="pole-dot" style="--pbg:' + gc + '"></i>' + esc(g || 'Sans pôle') + '</li>';
+        }
+      }
+      return head +
         '<li role="option" id="pick-' + k + '" data-k="' + k + '" aria-selected="' + sel + '"' + (k === picker.active ? ' class="active"' : '') + '>' +
-        '<span class="avatar sm' + (it.value ? '' : ' none') + '" aria-hidden="true">' + (it.value ? esc(initials(it.label)) : '–') + '</span>' +
+        (it.value ? avatarHTML(it.label, 'sm') : '<span class="avatar sm none" aria-hidden="true">–</span>') +
         '<span class="picker-name">' + esc(it.label) + '</span>' +
         (n ? '<span class="picker-count" title="' + esc(o.countTitle) + '">' + n + '</span>' : '') +
         '<span class="picker-check" aria-hidden="true">' + (sel ? '✓' : '') + '</span></li>';
@@ -1568,6 +1957,67 @@ td input[type=date]{padding:4px 8px}
     var b = $('ticketTable').querySelector('tr[data-id="' + t.id + '"] .assign'); if (b) b.focus();
   }
 
+  /* ---------- Menus de choix d'une session (Archives) ---------- */
+  // Même allure que les filtres par personne ; la valeur reste portée par la liste masquée.
+  // Une option « 29/10/2026 14:32 · 12 tickets » s'affiche en deux parties : la date, puis le nombre.
+  var optOpen = null; // id de la liste dont le menu est ouvert
+  function optParts(text){ var i = text.lastIndexOf(' · '); return i < 0 ? [text, ''] : [text.slice(0, i), text.slice(i + 3)]; }
+  function syncOptButton(id){
+    var sel = $(id), o = sel.options[sel.selectedIndex], btn = $(id + 'Btn');
+    btn.textContent = o ? optParts(o.text)[0] : '';
+    btn.classList.toggle('is-set', !!sel.value);
+    btn.title = o && sel.value ? o.text : '';
+  }
+  function renderOptPop(id, active){
+    var sel = $(id);
+    $(id + 'Pop').innerHTML = Array.prototype.map.call(sel.options, function(o, k){
+      var parts = optParts(o.text), on = o.value === sel.value;
+      return (k === 1 && !sel.options[0].value ? '<li class="picker-sep" role="presentation"></li>' : '') +
+        '<li role="option" id="' + id + '-o' + k + '" data-k="' + k + '" aria-selected="' + on + '"' + (k === active ? ' class="active"' : '') + '>' +
+        '<span class="opt-name">' + esc(parts[0]) + '</span>' +
+        (parts[1] ? '<span class="opt-count">' + esc(parts[1]) + '</span>' : '') +
+        '<span class="picker-check" aria-hidden="true">' + (on ? '✓' : '') + '</span></li>';
+    }).join('');
+    $(id + 'Pop').setAttribute('aria-activedescendant', id + '-o' + active);
+    var act = $(id + 'Pop').querySelector('li.active');
+    if (act && act.scrollIntoView) act.scrollIntoView({ block: 'nearest' });
+  }
+  function closeOptPop(focusBtn){
+    if (!optOpen) return;
+    var id = optOpen; optOpen = null;
+    $(id + 'Pop').hidden = true; $(id + 'Btn').setAttribute('aria-expanded', 'false');
+    if (focusBtn) $(id + 'Btn').focus();
+  }
+  function chooseOpt(id, k){
+    var sel = $(id); closeOptPop(true);
+    if (sel.selectedIndex === k) return;
+    sel.selectedIndex = k; syncOptButton(id);
+    sel.dispatchEvent(new Event('change'));
+  }
+  ['arSession', 'arTakenSession'].forEach(function(id){
+    var btn = $(id + 'Btn'), pop = $(id + 'Pop'), active = 0;
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      if (optOpen === id){ closeOptPop(false); return; }
+      closeOptPop(false); closePicker(false);
+      optOpen = id; active = Math.max(0, $(id).selectedIndex);
+      pop.hidden = false; btn.setAttribute('aria-expanded', 'true');
+      renderOptPop(id, active); pop.focus();
+    });
+    pop.addEventListener('click', function(e){
+      e.stopPropagation();
+      var li = e.target.closest('li[data-k]'); if (li) chooseOpt(id, +li.dataset.k);
+    });
+    pop.addEventListener('keydown', function(e){
+      var n = $(id).options.length;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){ e.preventDefault(); active = (active + (e.key === 'ArrowDown' ? 1 : n - 1)) % n; renderOptPop(id, active); }
+      else if (e.key === 'Home' || e.key === 'End'){ e.preventDefault(); active = e.key === 'Home' ? 0 : n - 1; renderOptPop(id, active); }
+      else if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); chooseOpt(id, active); }
+      else if (e.key === 'Escape' || e.key === 'Tab'){ if (e.key === 'Escape') e.preventDefault(); closeOptPop(e.key === 'Escape'); }
+    });
+  });
+  document.addEventListener('click', function(){ closeOptPop(false); });
+
   // Filtres par personne : le bouton ouvre le même menu ; la valeur reste portée par la liste masquée
   function filterButton(selectId, btnId, people, counts, countTitle, render){
     var btn = $(btnId);
@@ -1583,7 +2033,7 @@ td input[type=date]{padding:4px 8px}
   function renderFilterButton(selectId, btnId){
     var v = $(selectId).value, btn = $(btnId);
     btn.classList.toggle('is-set', !!v);
-    btn.innerHTML = v ? '<span class="avatar xs" aria-hidden="true">' + esc(initials(v)) + '</span>' + esc(v) : 'Toutes les personnes';
+    btn.innerHTML = v ? avatarHTML(v, 'xs') + esc(v) : 'Toutes les personnes';
     btn.title = v ? 'Filtré sur ' + v : 'Filtrer par personne';
   }
   filterButton('filterPerson', 'filterPersonBtn', allPeople, sessionLoad, 'Tickets affectés dans la session en cours', renderTickets);
@@ -1696,7 +2146,7 @@ td input[type=date]{padding:4px 8px}
   function setAddOpen(open){
     if (open && !state.columns.length){ notice('Aucun modèle de colonnes', 'Faites d\'abord un import depuis Excel : il crée le modèle de colonnes utilisé pour ajouter des tickets.'); return; }
     addOpen = open;
-    $('addTicketBtn').textContent = open ? 'Fermer l\'ajout' : 'Ajouter un ticket';
+    $('addTicketBtn').textContent = open ? 'Fermer l\'ajout' : 'Saisir un ticket';
     $('addTicketBtn').classList.toggle('primary', !open);
     $('addTicketBtn').setAttribute('aria-expanded', open ? 'true' : 'false');
     renderAddRow();
@@ -1742,18 +2192,6 @@ td input[type=date]{padding:4px 8px}
   $('ticketTable').addEventListener('input', function(e){ if (e.target.classList.contains('bad') && e.target.value.trim()) e.target.classList.remove('bad'); });
 
 
-  /* ---------- Menu Exporter ---------- */
-  function setMenuOpen(open){
-    $('exportMenu').hidden = !open;
-    $('exportToggle').setAttribute('aria-expanded', open ? 'true' : 'false');
-  }
-  $('exportToggle').addEventListener('click', function(e){
-    e.stopPropagation();
-    setMenuOpen($('exportMenu').hidden);
-  });
-  $('exportMenu').addEventListener('click', function(){ setMenuOpen(false); });
-  document.addEventListener('click', function(e){ if (!e.target.closest('.menu-wrap')) setMenuOpen(false); });
-  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !$('exportMenu').hidden){ setMenuOpen(false); $('exportToggle').focus(); } });
   var pasteTimer;
   $('pasteArea').addEventListener('input', function(){ clearTimeout(pasteTimer); pasteTimer = setTimeout(buildPreview, 250); });
   function resetPaste(){ $('pasteArea').value = ''; pv = null; renderPreview(); }
@@ -1788,7 +2226,6 @@ td input[type=date]{padding:4px 8px}
       ta.remove();
     }
   }
-  $('copyBtn').addEventListener('click', function(){ copyText(toTSV(state.tickets, false), $('tableMsg')); });
   $('arCopy').addEventListener('click', function(){ copyText(toTSV(archiveRows(), true), $('arMsg')); });
 
   /* ---------- Validation de session ---------- */
@@ -1845,7 +2282,7 @@ td input[type=date]{padding:4px 8px}
       '</div>' +
       '<p class="modal-kicker">Répartition</p>' +
       '<ul class="modal-split">' + sorted.map(function(e){
-        return '<li><span class="avatar sm" aria-hidden="true">' + esc(initials(e[0])) + '</span>' +
+        return '<li>' + avatarHTML(e[0], 'sm') +
           '<span class="modal-name">' + esc(e[0]) + '</span>' +
           '<span class="modal-bar"><span style="width:' + Math.round(e[1] / max * 100) + '%"></span></span>' +
           '<span class="modal-count">' + e[1] + '</span></li>';
@@ -2080,6 +2517,7 @@ td input[type=date]{padding:4px 8px}
       return '<option value="' + s.id + '">' + fmtDateTime(s.at) + ' · ' + plural(counts[s.id], 'ticket', 'tickets') + '</option>';
     }).join('');
     ss.value = curS; if (ss.value !== curS) ss.value = '';
+    syncOptButton('arSession');
     var sp = $('arPerson'), curP = sp.value, people = [];
     state.archive.forEach(function(t){ if (t.assignee && people.indexOf(t.assignee) < 0) people.push(t.assignee); });
     state.taken.forEach(function(t){ if (t.person && people.indexOf(t.person) < 0) people.push(t.person); });
@@ -2098,7 +2536,7 @@ td input[type=date]{padding:4px 8px}
       sortTh('archive', 'session', 'Session') + '<th class="no-print"></th></tr>';
     table.tBodies[0].innerHTML = rows.length ? rows.map(function(t){
       return '<tr data-id="' + t.id + '">' + t.cells.map(function(v, i){ return cellHTML(v, i, kinds[i]); }).join('') +
-        '<td><span class="who' + (t.assignee ? '' : ' none') + '" title="' + esc(t.assignee || 'Non affecté') + '">' + esc(t.assignee || 'Non affecté') + '</span></td>' +
+        whoHTML(t.assignee, '') +
         '<td class="c-date">' + fmtDay(t.assignedAt) + '</td><td class="c-date">' + sessionLabel(t.sessionId) + '</td>' +
         '<td class="no-print"><button class="del restore" type="button" title="Remettre dans la session en cours" aria-label="Remettre dans la session en cours">↩</button></td></tr>';
     }).join('') : '<tr><td colspan="' + (state.columns.length + 4) + '" class="empty" style="padding:20px;white-space:normal">' +
@@ -2107,8 +2545,8 @@ td input[type=date]{padding:4px 8px}
   /* ---------- Bascule Tickets affectés / Tickets pris ---------- */
   function setArchiveView(view){
     var taken = view === 'taken';
-    $('arSessions').hidden = $('arSessionsWrap').hidden = $('arSession').hidden = taken;
-    $('arTaken').hidden = $('arTakenWrap').hidden = $('arTakenSession').hidden = !taken;
+    $('arSessions').hidden = $('arSessionsWrap').hidden = $('arSessionBox').hidden = taken;
+    $('arTaken').hidden = $('arTakenWrap').hidden = $('arTakenSessionBox').hidden = !taken;
     $('panel-archive').querySelectorAll('[data-arview]').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.arview === view ? 'true' : 'false'); });
     try { localStorage.setItem('affectation-archive-view', view); } catch(e){}
   }
@@ -2117,7 +2555,7 @@ td input[type=date]{padding:4px 8px}
   });
   try { if (localStorage.getItem('affectation-archive-view') === 'taken') setArchiveView('taken'); } catch(e){}
 
-  // Tickets pris importés depuis Statistiques, regroupés par import (« session ») : le plus récent en premier.
+  // Tickets pris importés, regroupés par import (« session ») : le plus récent en premier.
   // Un import n'a pas d'identifiant en base : ses lignes partagent la même date d'enregistrement, à la minute près.
   function takenSession(t){ return (t.importedAt || '').slice(0, 16); }
   function renderArchiveTaken(){
@@ -2131,25 +2569,29 @@ td input[type=date]{padding:4px 8px}
       return '<option value="' + esc(k) + '">' + (k ? fmtDateTime(groups[k].at) : 'Date inconnue') + ' · ' + plural(groups[k].n, 'ticket', 'tickets') + '</option>';
     }).join('');
     sel.value = cur; if (sel.value !== cur) sel.value = '';
+    syncOptButton('arTakenSession');
     var q = $('arSearch').value.trim().toLowerCase(), who = $('arPerson').value, ses = sel.value;
     var rows = state.taken.filter(function(t){
       if (ses && takenSession(t) !== ses) return false;
       if (who && t.person !== who) return false;
-      if (q && [t.id, t.person, t.label].join(' ').toLowerCase().indexOf(q) < 0) return false;
+      if (q && [t.id, t.person, t.label, t.pole, t.org, t.requester].join(' ').toLowerCase().indexOf(q) < 0) return false;
       return true;
     }).sort(function(a, b){
       return (b.importedAt || '').localeCompare(a.importedAt || '') || (b.takenOn || '').localeCompare(a.takenOn || '') || a.id.localeCompare(b.id, 'fr', { numeric: true });
     });
     $('arTakenCount').textContent = rows.length === state.taken.length ? nf.format(rows.length) : nf.format(rows.length) + ' / ' + nf.format(state.taken.length);
-    $('arTakenTable').tHead.innerHTML = '<tr><th>Identifiant</th><th>Consultant</th><th>Date de prise en charge</th><th>Sujet</th><th>Session</th></tr>';
+    $('arTakenTable').tHead.innerHTML = '<tr><th>Identifiant</th><th>Date de prise en charge</th><th>Pôle</th><th>Sujet</th><th>Organisation</th><th>Demandeur</th><th>Consultant</th><th>Session</th></tr>';
     $('arTakenTable').tBodies[0].innerHTML = rows.length ? rows.map(function(t){
       return '<tr><td class="c-id">' + esc(t.id) + '</td>' +
-        '<td><span class="who self" title="' + esc(t.person) + '">' + esc(t.person) + '</span></td>' +
         '<td class="c-date">' + fmtDay(t.takenOn) + '</td>' +
+        '<td class="narrow" style="max-width:80px" title="' + esc(t.pole) + '">' + esc(t.pole) + '</td>' +
         '<td class="c-long"><div class="clamp" title="' + esc(t.label) + '">' + esc(t.label) + '</div></td>' +
+        '<td class="narrow" style="max-width:130px" title="' + esc(t.org) + '">' + esc(t.org) + '</td>' +
+        '<td class="narrow" style="max-width:120px" title="' + esc(t.requester) + '">' + esc(t.requester) + '</td>' +
+        whoHTML(t.person, ' self') +
         '<td class="c-date">' + (t.importedAt ? fmtDateTime(t.importedAt) : '—') + '</td></tr>';
-    }).join('') : '<tr><td colspan="5" class="empty" style="padding:20px;white-space:normal">' +
-      (state.taken.length ? 'Aucun ticket pris ne correspond aux filtres.' : 'Aucun ticket pris pour l\'instant. Importez-les depuis l\'onglet Statistiques, bouton « Importer des tickets pris ».') + '</td></tr>';
+    }).join('') : '<tr><td colspan="8" class="empty" style="padding:20px;white-space:normal">' +
+      (state.taken.length ? 'Aucun ticket pris ne correspond aux filtres.' : 'Aucun ticket pris pour l\'instant. Importez-les avec le bouton « Importer des tickets pris ».') + '</td></tr>';
   }
   $('arTakenSession').addEventListener('change', renderArchiveTaken);
   ['arSearch', 'arSession'].forEach(function(id){
@@ -2179,14 +2621,6 @@ td input[type=date]{padding:4px 8px}
       $('arMsg').innerHTML = '<strong>Ticket remis dans la session en cours.</strong>';
     });
   });
-  $('exportBtn').addEventListener('click', function(){
-    var blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'affectation-tickets-' + isoDay(new Date()) + '.json';
-    a.click();
-    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
-  });
   $('clearBtn').addEventListener('click', function(){
     if (!state.tickets.length || !isAdmin()) return;
     var n = state.tickets.length, assigned = state.tickets.filter(function(t){ return t.assignee; }).length;
@@ -2210,10 +2644,9 @@ td input[type=date]{padding:4px 8px}
     var max = sorted[0][1] || 1, rank = 0, prev = null;
     return sorted.map(function(e, i){
       if (e[1] !== prev){ rank = i + 1; prev = e[1]; }
-      var hl = rank === 1 && e[1] > 0;
-      return '<li class="rank-row' + (hl ? ' hl' : '') + '">' +
-        '<span class="rank-n">' + rank + '</span>' +
-        '<span class="avatar" aria-hidden="true">' + esc(initials(e[0])) + '</span>' +
+      var pod = rank <= 3 && e[1] > 0 ? ' p' + rank : '';
+      return '<li class="rank-row' + pod + '" title="' + (rank === 1 ? '1er' : rank + 'e') + '">' +
+        avatarHTML(e[0]) +
         '<span class="rank-name" title="' + esc(e[0]) + '">' + esc(e[0]) + '</span>' +
         '<span class="track"><span class="fill" data-v="' + e[1] + '" data-max="' + max + '"></span></span>' +
         '<span class="rank-score">' + nf.format(e[1]) + '</span></li>';
@@ -2226,11 +2659,10 @@ td input[type=date]{padding:4px 8px}
     return rows.map(function(e, i){
       var tot = e[1] + e[2];
       if (tot !== prev){ rank = i + 1; prev = tot; }
-      var hl = rank === 1 && tot > 0;
+      var pod = rank <= 3 && tot > 0 ? ' p' + rank : '';
       var pa = tot ? Math.round(e[1] / tot * 100) : 0;
-      return '<li class="rank-row' + (hl ? ' hl' : '') + '">' +
-        '<span class="rank-n">' + rank + '</span>' +
-        '<span class="avatar" aria-hidden="true">' + esc(initials(e[0])) + '</span>' +
+      return '<li class="rank-row' + pod + '" title="' + (rank === 1 ? '1er' : rank + 'e') + '">' +
+        avatarHTML(e[0]) +
         '<span class="rank-name" title="' + esc(e[0]) + '">' + esc(e[0]) + '</span>' +
         '<span class="track" title="' + plural(e[1], 'affectation', 'affectations') + ' + ' + plural(e[2], 'ticket pris', 'tickets pris') + '">' +
           '<span class="fill split" data-v="' + tot + '" data-max="' + max + '"><span class="seg aff" style="width:' + pa + '%"></span><span class="seg self" style="width:' + (100 - pa) + '%"></span></span></span>' +
@@ -2306,7 +2738,7 @@ td input[type=date]{padding:4px 8px}
     var body = yearRows.map(function(e){
       var p = e[0], a = mx[p] || zero, t = tx[p] || zero;
       totA += e[1]; totT += e[2];
-      return '<tr><td>' + esc(p) + '</td>' +
+      return '<tr><td><span class="yt-person">' + avatarHTML(p, 'sm') + esc(p) + '</span></td>' +
         a.map(function(v, i){ colA[i] += v; colT[i] += t[i]; return pairCell(v, t[i], i === period.m ? 'cur' : '', maxCell); }).join('') +
         pairCell(e[1], e[2], 'total') + '</tr>';
     }).join('');
@@ -2323,7 +2755,8 @@ td input[type=date]{padding:4px 8px}
   // Liste importée à part : ces tickets n'entrent ni dans les sessions ni dans les archives,
   // ils complètent seulement les statistiques.
   var takenAvailable = true; // false tant que la mise à jour 002 n'a pas été exécutée dans Supabase
-  var tk = null;             // aperçu : { header, rows, map: { id, person, date, label } }
+  var takenExtra = true;     // false tant que la mise à jour 003 (Pôle, Organisation, Demandeur) n'a pas été exécutée
+  var tk = null;             // aperçu : { header, rows, map: { id, person, date, label, pole, org, requester } }
   var takenUndo = null;
 
   // Retrouve la personne de la liste à partir du nom exporté (« Antoine Lancelot », « LANCELOT Antoine »…)
@@ -2342,8 +2775,16 @@ td input[type=date]{padding:4px 8px}
     return -1;
   }
   // Ordre attendu des colonnes ; sert d'en-têtes si le collage n'en a pas, et de choix par défaut
-  var TAKEN_ORDER = ['ID', 'Date de prise en charge', 'Pôle', 'Sujet', 'Demandeur', 'Organisation', 'Assigné'];
-  var TAKEN_POS = { id: 0, date: 1, label: 3, person: 6 };
+  var TAKEN_ORDER = ['ID', 'Affecté', '{{dc.ticket_field_category-0}}', 'Sujet', 'Organisation', 'Demandeur', 'Assigné'];
+  var TAKEN_POS = { id: 0, date: 1, pole: 2, label: 3, org: 4, requester: 5, person: 6 };
+  // Colonnes facultatives : une cellule vide garde la valeur déjà enregistrée
+  var TAKEN_EXTRA = [['label', 'Sujet'], ['pole', 'Pôle'], ['org', 'Organisation'], ['requester', 'Demandeur']];
+  // « Date de prise en charge : 12, Pôle : 3 », dans l'ordre des colonnes de l'import
+  function changeList(changes){
+    return ['Date de prise en charge', 'Pôle', 'Sujet', 'Organisation', 'Demandeur', 'Consultant']
+      .filter(function(c){ return changes[c]; })
+      .map(function(c){ return c + ' : ' + nf.format(changes[c]); }).join(', ');
+  }
   function buildTaken(){
     var rows = parseTSV($('takenPaste').value);
     if (!rows.length){ tk = null; renderTaken(); return; }
@@ -2355,7 +2796,7 @@ td input[type=date]{padding:4px 8px}
     var map = tk && tk.header.join('\t') === header.join('\t') ? tk.map : null;
     if (!map){
       var used = [], idName = norm(state.columns[0] || '');
-      map = { id: -1, person: -1, date: -1, label: -1 };
+      map = { id: -1, person: -1, date: -1, label: -1, pole: -1, org: -1, requester: -1 };
       for (var j = 0; j < header.length; j++) if (idName && norm(header[j]) === idName){ map.id = j; break; }
       if (map.id < 0) map.id = guessCol(header, /ticket|numero|^n°|^no\b|^id\b|reference|incident/, used);
       if (map.id < 0) map.id = 0;
@@ -2363,7 +2804,10 @@ td input[type=date]{padding:4px 8px}
       // La date d'abord : un en-tête comme « Date d'affectation » ne doit pas être pris pour le consultant
       map.date = guessCol(header, /^date|affect|^cree|creat|ouvert|^pris|prise/, used); used.push(map.date);
       map.person = guessCol(header, /assign|attribu|technicien|consultant|responsable|agent|intervenant|proprietaire|owner/, used); used.push(map.person);
-      map.label = guessCol(header, /sujet|titre|objet|resume|libelle|description/, used);
+      map.label = guessCol(header, /sujet|titre|objet|resume|libelle|description/, used); used.push(map.label);
+      map.pole = guessCol(header, /^pole|categor/, used); used.push(map.pole);
+      map.org = guessCol(header, /organisation|societe|client|entreprise/, used); used.push(map.org);
+      map.requester = guessCol(header, /demandeur|requester|contact/, used); used.push(map.requester);
       // Colonnes non reconnues : position de l'ordre attendu
       Object.keys(TAKEN_POS).forEach(function(k){
         if (map[k] < 0 && TAKEN_POS[k] < header.length && used.indexOf(TAKEN_POS[k]) < 0){ map[k] = TAKEN_POS[k]; used.push(map[k]); }
@@ -2376,41 +2820,60 @@ td input[type=date]{padding:4px 8px}
     var m = tk.map, errors = [], warns = [], counts = { 'new': 0, upd: 0, skip: 0 }, seen = {}, unknown = {};
     if (m.person < 0) errors.push('Choisissez la colonne du consultant.');
     if (m.date < 0) errors.push('Choisissez la colonne de date de prise en charge.');
-    var known = {}, team = {};
+    var known = {}, team = {}, info = [], changes = {}, updated = 0;
     state.taken.forEach(function(t){ known[t.id] = t; });
     allTickets().forEach(function(t){ var k = (t.cells[0] || '').trim(); if (k && t.assignee) team[k] = t; });
     var rows = tk.rows.map(function(r){
       var id = (r[m.id] || '').trim();
       var raw = m.person >= 0 ? (r[m.person] || '').trim() : '', person = matchPerson(raw);
       var d = m.date >= 0 ? parseDate(r[m.date]) : null, label = m.label >= 0 ? (r[m.label] || '').trim() : '';
+      var pick = function(k){ return m[k] >= 0 ? (r[m[k]] || '').trim() : ''; };
       var status = 'new', note = '';
       if (!id){ status = 'skip'; note = 'identifiant vide'; }
       else if (seen[id]){ status = 'skip'; note = 'en double dans le collage'; }
       else if (team[id]){ status = 'skip'; note = 'déjà affecté par l\'équipe (' + team[id].assignee + ')'; }
       else if (!person){ status = 'skip'; note = raw ? 'consultant non reconnu' : 'consultant vide'; if (raw) unknown[raw] = true; }
       else if (!d){ status = 'skip'; note = 'date illisible'; }
-      else if (known[id]){ status = 'upd'; note = 'déjà importé : mis à jour'; }
+      var row = { id: id, raw: raw, person: person, day: d ? isoDay(d) : '', label: label, pole: pick('pole'), org: pick('org'), requester: pick('requester'), changed: [], cells: r };
+      if (status === 'new' && known[id]){
+        // Colonnes réellement modifiées ; une cellule vide ne remplace pas la valeur déjà enregistrée
+        var ex = known[id];
+        if (row.person !== ex.person) row.changed.push('Consultant');
+        if (row.day !== ex.takenOn) row.changed.push('Date de prise en charge');
+        TAKEN_EXTRA.forEach(function(f){ if (row[f[0]] && row[f[0]] !== (ex[f[0]] || '')) row.changed.push(f[1]); });
+        status = 'upd';
+        note = row.changed.length ? 'mis à jour : ' + row.changed.join(', ') : 'déjà importé : identique';
+        row.changed.forEach(function(c){ changes[c] = (changes[c] || 0) + 1; });
+        if (row.changed.length) updated++;
+      }
       if (id) seen[id] = true;
       counts[status]++;
-      return { id: id, raw: raw, person: person, day: d ? isoDay(d) : '', label: label, status: status, note: note, cells: r };
+      row.status = status; row.note = note;
+      return row;
     });
+    if (counts.upd) info.push(updated
+      ? '<strong>' + plural(updated, 'ticket déjà importé sera mis à jour', 'tickets déjà importés seront mis à jour') + '</strong> : ' + changeList(changes) + '.' +
+        (counts.upd > updated ? ' ' + plural(counts.upd - updated, 'autre est identique', 'autres sont identiques') + '.' : '')
+      : plural(counts.upd, 'ticket déjà importé est identique', 'tickets déjà importés sont identiques') + ' : rien ne changera.');
     var unk = Object.keys(unknown);
     if (unk.length) warns.push('Consultants non reconnus : ' + unk.map(function(u){ return '« ' + esc(u) + ' »'; }).join(', ') +
       '. Ajoutez-les dans « Personnes pour l\'affectation » (onglet Tickets, Importer depuis Excel), puis recollez.');
     if (counts.skip) warns.push(plural(counts.skip, 'ligne ignorée', 'lignes ignorées') + ' (voir le statut de chaque ligne).');
     if (!rows.length) errors.push('Aucune ligne sous les en-têtes.');
-    return { errors: errors, warns: warns, rows: rows, counts: counts };
+    return { errors: errors, warns: warns, info: info, rows: rows, counts: counts, changes: changes, updated: updated };
   }
   function renderTaken(){
     var n = state.taken.length;
     $('takenTag').textContent = plural(n, 'ticket pris enregistré', 'tickets pris enregistrés');
     $('takenMissing').hidden = takenAvailable;
+    $('takenExtraMissing').hidden = !takenAvailable || takenExtra;
     $('takenPaste').disabled = !takenAvailable;
     var box = $('takenPreview');
     if (!tk){ box.hidden = true; return; }
     box.hidden = false;
     var a = analyzeTaken(), m = tk.map;
-    var fields = [['id', 'Identifiant', false], ['person', 'Consultant', false], ['date', 'Date de prise en charge', false], ['label', 'Sujet', true]];
+    var fields = [['id', 'Identifiant', false], ['person', 'Consultant', false], ['date', 'Date de prise en charge', false], ['label', 'Sujet', true],
+      ['pole', 'Pôle', true], ['org', 'Organisation', true], ['requester', 'Demandeur', true]];
     $('takenMap').innerHTML = fields.map(function(f){
       return '<label>' + f[1] + '<select data-field="' + f[0] + '">' +
         (f[2] || f[0] !== 'id' ? '<option value="-1">' + (f[2] ? '— Aucune —' : '— Choisir —') + '</option>' : '') +
@@ -2419,12 +2882,12 @@ td input[type=date]{padding:4px 8px}
     }).join('');
     $('takenIssues').innerHTML =
       a.errors.map(function(t){ return '<li class="issue err"><strong>À corriger :</strong> ' + t + '</li>'; }).join('') +
-      a.warns.map(function(t){ return '<li class="issue warn">' + t + '</li>'; }).join('');
+      a.warns.map(function(t){ return '<li class="issue warn">' + t + '</li>'; }).join('') +
+      a.info.map(function(t){ return '<li class="issue ok">' + t + '</li>'; }).join('');
     var labels = { 'new': 'Nouveau', upd: 'Mise à jour', skip: 'Ignorée' };
     // Toutes les colonnes collées, dans l'ordre du collage ; celles utilisées par l'import sont signalées et interprétées
     var role = {};
     fields.forEach(function(f){ if (m[f[0]] >= 0) role[m[f[0]]] = f[0]; });
-    var names = { id: 'Identifiant', person: 'Consultant', date: 'Prise en charge', label: 'Sujet' };
     function cell(r, j){
       var v = (r.cells[j] || '').trim();
       switch (role[j]){
@@ -2436,7 +2899,7 @@ td input[type=date]{padding:4px 8px}
       }
     }
     $('takenTable').innerHTML = '<thead><tr><th>Statut</th>' +
-      tk.header.map(function(h, j){ return '<th>' + esc(h) + (role[j] ? ' <span class="key-tag">' + names[role[j]] + '</span>' : '') + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      tk.header.map(function(h){ return '<th>' + esc(h) + '</th>'; }).join('') + '</tr></thead><tbody>' +
       a.rows.map(function(r){
         return '<tr' + (r.status === 'skip' ? ' class="r-skip"' : '') + '><td><span class="st ' + r.status + '">' + labels[r.status] + '</span>' +
           (r.note ? '<span class="st-note">' + esc(r.note) + '</span>' : '') + '</td>' +
@@ -2463,26 +2926,33 @@ td input[type=date]{padding:4px 8px}
   $('takenImport').addEventListener('click', function(){
     if (!tk) return;
     var a = analyzeTaken(); if (a.errors.length) return;
-    var n = 0, at = new Date().toISOString(); // même horodatage pour tout l'import : c'est sa « session »
+    var at = new Date().toISOString(); // même horodatage pour tout l'import : c'est sa « session »
     a.rows.forEach(function(r){
       if (r.status === 'skip') return;
       var ex = state.taken.filter(function(t){ return t.id === r.id; })[0];
-      if (ex){ ex.person = r.person; ex.takenOn = r.day; if (r.label) ex.label = r.label; }
-      else state.taken.push({ id: r.id, person: r.person, takenOn: r.day, label: r.label, importedAt: at });
-      n++;
+      if (ex){
+        ex.person = r.person; ex.takenOn = r.day;
+        TAKEN_EXTRA.forEach(function(f){ if (r[f[0]]) ex[f[0]] = r[f[0]]; });
+      }
+      else state.taken.push({ id: r.id, person: r.person, takenOn: r.day, label: r.label, pole: r.pole, org: r.org, requester: r.requester, importedAt: at });
     });
+    var added = a.counts['new'], same = a.counts.upd - a.updated, parts = [];
+    if (added) parts.push(plural(added, 'nouveau ticket pris', 'nouveaux tickets pris'));
+    if (a.updated) parts.push(plural(a.updated, 'ticket mis à jour', 'tickets mis à jour') + ' (' + changeList(a.changes) + ')');
+    if (same) parts.push(plural(same, 'ticket identique', 'tickets identiques'));
     takenUndo = save();
-    audit('tickets_pris_importes', { tickets: n });
+    audit('tickets_pris_importes', { tickets: added + a.counts.upd, nouveaux: added, mis_a_jour: a.updated });
     $('takenPaste').value = ''; tk = null;
-    renderTaken(); renderStats(); renderArchive();
-    $('takenMsg').innerHTML = '<strong>' + plural(n, 'ticket pris importé', 'tickets pris importés') + '.</strong> ' +
+    setTakenOpen(false);
+    renderTaken(); renderStats(); renderArchive(); renderBanner();
+    $('takenMsg').innerHTML = '<strong>Import terminé :</strong> ' + parts.join(', ') + '. ' +
       '<button type="button" class="link-btn" id="takenUndoBtn">Annuler cet import</button>';
   });
   $('takenMsg').addEventListener('click', function(e){
     if (e.target.id !== 'takenUndoBtn' || !takenUndo) return;
     applyInverse(takenUndo); takenUndo = null;
     save(); audit('annulation', { operation: 'cet import de tickets pris' });
-    renderTaken(); renderStats(); renderArchive();
+    renderTaken(); renderStats(); renderArchive(); renderBanner();
     $('takenMsg').innerHTML = '<strong>Import annulé.</strong>';
   });
 
@@ -2536,6 +3006,8 @@ td input[type=date]{padding:4px 8px}
   var synced = { settings: null, people: {}, sessions: {}, tickets: {}, taken: {} };
   var COLLECTIONS = ['people', 'sessions', 'tickets', 'taken'];
   var hasSettingsRow = false;
+  var peopleExtra = true; // false tant que la mise à jour 004 (pôles) n'a pas été exécutée
+  function personRow(name){ return peopleExtra ? { name: name, poles: polesOf(name) } : { name: name }; }
   var queue = Promise.resolve(), pending = 0;
 
   function settingsRow(){ return { id: 1, columns: state.columns, required: state.required, date_col: state.dateCol }; }
@@ -2549,8 +3021,14 @@ td input[type=date]{padding:4px 8px}
     if (r.session_id){ t.sessionId = r.session_id; t.archivedAt = r.archived_at; }
     return t;
   }
-  function takenRow(t){ return { id: t.id, person: t.person, taken_on: t.takenOn, label: t.label || null }; }
-  function takenFromRow(r){ return { id: r.id, person: r.person, takenOn: r.taken_on, label: r.label || '', importedAt: r.created_at || '' }; }
+  function takenRow(t){
+    var row = { id: t.id, person: t.person, taken_on: t.takenOn, label: t.label || null };
+    if (takenExtra){ row.pole = t.pole || null; row.organisation = t.org || null; row.requester = t.requester || null; }
+    return row;
+  }
+  function takenFromRow(r){
+    return { id: r.id, person: r.person, takenOn: r.taken_on, label: r.label || '', pole: r.pole || '', org: r.organisation || '', requester: r.requester || '', importedAt: r.created_at || '' };
+  }
   function dropTicket(id){
     state.tickets = state.tickets.filter(function(t){ return t.id !== id; });
     state.archive = state.archive.filter(function(t){ return t.id !== id; });
@@ -2564,7 +3042,7 @@ td input[type=date]{padding:4px 8px}
   }
   function snapshot(){
     var snap = { settings: state.columns.length || hasSettingsRow ? settingsRow() : null, people: {}, sessions: {}, tickets: {}, taken: {} };
-    state.people.forEach(function(p){ snap.people[p] = { name: p }; });
+    state.people.forEach(function(p){ snap.people[p] = personRow(p); });
     state.sessions.forEach(function(s){ snap.sessions[s.id] = sessionRow(s); });
     allTickets().forEach(function(t){ snap.tickets[t.id] = ticketRow(t); });
     state.taken.forEach(function(t){ snap.taken[t.id] = takenRow(t); });
@@ -2615,7 +3093,7 @@ td input[type=date]{padding:4px 8px}
   function chunks(arr, n){ var out = []; for (var i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n)); return out; }
   async function push(settings, up, del){
     if (settings) check(await db.from('app_settings').upsert(settings));
-    if (up.people.length) check(await db.from('people').upsert(up.people, { onConflict: 'name', ignoreDuplicates: true }));
+    if (up.people.length) check(await db.from('people').upsert(up.people, peopleExtra ? { onConflict: 'name' } : { onConflict: 'name', ignoreDuplicates: true }));
     if (up.sessions.length) check(await db.from('sessions').upsert(up.sessions, { onConflict: 'id', ignoreDuplicates: true }));
     for (var a = chunks(up.tickets, 500), i = 0; i < a.length; i++) check(await db.from('tickets').upsert(a[i]));
     await remove('sessions', 'id', del.sessions);
@@ -2672,10 +3150,15 @@ td input[type=date]{padding:4px 8px}
     hasSettingsRow = !!s;
     if (s){ next.columns = s.columns || []; next.required = s.required || []; next.dateCol = s.date_col == null ? -1 : s.date_col; }
     next.people = res[1].map(function(p){ return p.name; });
+    peopleExtra = !(await db.from('people').select('poles').limit(1)).error;
+    res[1].forEach(function(p){ var ps = cleanPoles(p.poles); if (ps.length) next.poles[p.name] = ps; });
     next.sessions = res[2].map(function(r){ return { id: r.id, at: r.at }; });
     res[3].forEach(function(r){ var t = ticketFromRow(r); (t.sessionId ? next.archive : next.tickets).push(t); });
     // Tickets pris : table ajoutée par la mise à jour 002, peut-être pas encore créée
-    try { next.taken = (await fetchAll('self_tickets', 'created_at')).map(takenFromRow); takenAvailable = true; }
+    try {
+      next.taken = (await fetchAll('self_tickets', 'created_at')).map(takenFromRow); takenAvailable = true;
+      takenExtra = !(await db.from('self_tickets').select('pole').limit(1)).error;
+    }
     catch(err){ console.warn('Table self_tickets indisponible', err); takenAvailable = false; next.taken = []; }
     state = normalize(next);
     markSynced();
@@ -2721,7 +3204,12 @@ td input[type=date]{padding:4px 8px}
       .on('postgres_changes', { event: '*', schema: 'public', table: 'people' }, function(p){
         var name = p.eventType === 'DELETE' ? p.old && p.old.name : p['new'].name, i = state.people.indexOf(name);
         if (p.eventType === 'DELETE'){ if (i >= 0) state.people.splice(i, 1); delete synced.people[name]; }
-        else { if (i < 0) state.people.push(name); synced.people[name] = JSON.stringify({ name: name }); }
+        else {
+          if (i < 0) state.people.push(name);
+          var ps = cleanPoles(p['new'].poles);
+          if (ps.length) state.poles[name] = ps; else delete state.poles[name];
+          synced.people[name] = JSON.stringify(personRow(name));
+        }
         scheduleRender();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, function(p){
